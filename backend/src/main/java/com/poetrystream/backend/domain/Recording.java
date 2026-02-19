@@ -8,7 +8,8 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "recordings")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

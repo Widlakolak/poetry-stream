@@ -1,6 +1,8 @@
 package com.poetrystream.backend.controller;
 
 import com.poetrystream.backend.domain.Recording;
+import com.poetrystream.backend.dto.RecordingDto;
+import com.poetrystream.backend.repository.RecordingRepository;
 import com.poetrystream.backend.service.RecordingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -13,10 +15,23 @@ import java.util.List;
 public class RecordingController {
 
     private final RecordingService service;
+    private final RecordingRepository repository;
 
     @GetMapping
-    public List<Recording> getAll() {
+    public List<RecordingDto> getAll() {
         return service.getAllRecordings();
+    }
+
+    @GetMapping("/{id}")
+    public RecordingDto getById(@PathVariable String id) {
+        return service.getRecordingById(id);
+    }
+
+    public RecordingDto getRecordingById(String id) {
+        Recording recording = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Recording not found"));
+
+        return service.mapToDto(recording);
     }
 
     @PostMapping

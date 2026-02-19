@@ -2,9 +2,11 @@ package com.poetrystream.backend.repository;
 
 import com.poetrystream.backend.domain.Recording;
 import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
 
 public interface RecordingRepository extends JpaRepository<Recording, String> {
-    // metody np.:
-    // List<Recording> findByAuthor(String author);
-    // List<Recording> findByTitleContainingIgnoreCase(String titlePart);
+
+    List<Recording> findByTitleContainingIgnoreCase(String title);
+    List<Recording> findByAuthorContainingIgnoreCase(String author);
+    List<Recording> findByActorContainingIgnoreCase(String actor);
 }
