@@ -21,36 +21,46 @@ public class Recording {
     private String id;
 
     @NotBlank(message = "Tytuł jest wymagany")
-    @Size(max = 255, message = "Tytuł może mieć maksymalnie 255 znaków")
+    @Size(max = 255)
     @Column(nullable = false)
     private String title;
 
     @NotBlank(message = "Autor jest wymagany")
-    @Size(max = 255, message = "Autor może mieć maksymalnie 255 znaków")
+    @Size(max = 255)
     @Column(nullable = false)
     private String author;
 
-    @Size(max = 255, message = "Aktor może mieć maksymalnie 255 znaków")
+    @Size(max = 255)
     private String actor;
 
     @NotBlank(message = "URL nagrania jest wymagany")
-    @Pattern(regexp = "^https?://.*\\.(mp3|wav|ogg|m4a)$",
-            message = "URL musi wskazywać na plik audio (mp3, wav, ogg, m4a)")
-    @Column(nullable = false)
+    @Pattern(regexp = "^https?://.*\\.(mp3|wav|ogg|m4a)$")
+    @Column(name = "audio_url", nullable = false, length = 512)
     private String audioUrl;
 
-    @Min(value = 0, message = "Czas startu nie może być ujemny")
+    @Min(0)
+    @Column(name = "start_time_sec")
     private Integer startTimeSec;
 
     @ElementCollection
-    @CollectionTable(name = "recording_lines", joinColumns = @JoinColumn(name = "recording_id"))
+    @CollectionTable(name = "recording_lines",
+            joinColumns = @JoinColumn(name = "recording_id"))
     @Column(name = "line_text")
+    @OrderColumn(name = "line_order")
     private List<String> lines;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private RecordingStatus status;
 
     @PrePersist
     private void ensureId() {
         if (id == null || id.isBlank()) {
             id = UUID.randomUUID().toString();
+        }
+
+        if (status == null) {
+            status = RecordingStatus.DRAFT;
         }
     }
 }

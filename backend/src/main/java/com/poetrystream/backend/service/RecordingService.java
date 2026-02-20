@@ -1,11 +1,15 @@
 package com.poetrystream.backend.service;
 
 import com.poetrystream.backend.domain.Recording;
+import com.poetrystream.backend.domain.RecordingStatus;
 import com.poetrystream.backend.dto.RecordingDto;
+import com.poetrystream.backend.dto.RecordingKaraokeDto;
 import com.poetrystream.backend.exception.ResourceNotFoundException;
+import com.poetrystream.backend.mapper.RecordingMapper;
 import com.poetrystream.backend.repository.RecordingRepository;
-import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
 import java.util.List;
 
 @Service
@@ -13,17 +17,21 @@ import java.util.List;
 public class RecordingService {
 
     private final RecordingRepository repository;
+    private final RecordingMapper mapper;
 
     public RecordingDto getRecordingById(String id) {
         Recording recording = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Recording not found with id: " + id));
-        return mapToDto(recording);
+                .filter(r -> r.getStatus() == RecordingStatus.PUBLISHED)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Recording not found with id: " + id));
+
+        return mapper.toDto(recording);
     }
 
     public List<RecordingDto> getAllRecordings() {
-        return repository.findAll()
+        return repository.findByStatus(RecordingStatus.PUBLISHED)
                 .stream()
-                .map(this::mapToDto)
+                .map(mapper::toDto)
                 .toList();
     }
 
@@ -31,14 +39,12 @@ public class RecordingService {
         return repository.save(recording);
     }
 
-    public RecordingDto mapToDto(Recording recording) {
-        return RecordingDto.builder()
-                .id(recording.getId())
-                .title(recording.getTitle())
-                .author(recording.getAuthor())
-                .actor(recording.getActor())
-                .audioUrl(recording.getAudioUrl())
-                .startTimeSec(recording.getStartTimeSec())
-                .build();
+    public RecordingKaraokeDto getKaraoke(String id) {
+        Recording recording = repository.findById(id)
+                .filter(r -> r.getStatus() == RecordingStatus.PUBLISHED)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Recording not found with id: " + id));
+
+        return mapper.toKaraokeDto(recording);
     }
 }

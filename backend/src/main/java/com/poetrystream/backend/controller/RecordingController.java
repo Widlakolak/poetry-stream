@@ -2,7 +2,8 @@ package com.poetrystream.backend.controller;
 
 import com.poetrystream.backend.domain.Recording;
 import com.poetrystream.backend.dto.RecordingDto;
-import com.poetrystream.backend.repository.RecordingRepository;
+import com.poetrystream.backend.dto.RecordingKaraokeDto;
+import com.poetrystream.backend.mapper.RecordingMapper;
 import com.poetrystream.backend.service.RecordingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,7 @@ import java.util.List;
 public class RecordingController {
 
     private final RecordingService service;
-    private final RecordingRepository repository;
+    private final RecordingMapper mapper;
 
     @GetMapping
     public List<RecordingDto> getAll() {
@@ -31,26 +32,32 @@ public class RecordingController {
         return service.getRecordingById(id);
     }
 
-    public RecordingDto getRecordingById(String id) {
-        Recording recording = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Recording not found"));
-
-        return service.mapToDto(recording);
-    }
-
     @PostMapping
     public ResponseEntity<RecordingDto> createRecording(
-            @Valid @RequestBody Recording recording,
+            @Valid @RequestBody RecordingDto dto,
             UriComponentsBuilder uriBuilder) {
 
+        Recording recording = Recording.builder()
+                .title(dto.getTitle())
+                .author(dto.getAuthor())
+                .actor(dto.getActor())
+                .audioUrl(dto.getAudioUrl())
+                .startTimeSec(dto.getStartTimeSec())
+                // status ustawi się na DRAFT w @PrePersist
+                .build();
+
         Recording saved = service.save(recording);
-        RecordingDto dto = service.mapToDto(saved);
 
-        URI location = uriBuilder
-                .path("/api/recordings/{id}")
-                .buildAndExpand(saved.getId())
-                .toUri();
+        RecordingDto response = mapper.toDto(saved);
 
-        return ResponseEntity.created(location).body(dto);
+        URI location = uriBuilder.path("/api/recordings/{id}")
+                .buildAndExpand(saved.getId()).toUri();
+
+        return ResponseEntity.created(location).body(response);
+    }
+
+    @GetMapping("/{id}/karaoke")
+    public ResponseEntity<RecordingKaraokeDto> getKaraoke(@PathVariable String id) {
+        return ResponseEntity.ok(service.getKaraoke(id));
     }
 }
