@@ -6,87 +6,112 @@ Projekt łączy technologię Java + Spring Boot z frontem React, umożliwiając 
 
 ---
 
+## 📌 Project Overview
+
+Educational audio-literature streaming platform built with Java 21 & Spring Boot 4.0.2.
+
+PoetryStream is a modular backend-driven platform designed to deliver high-quality audio recordings of poetry and literary works.
+
+---
+
 ## 🎯 Misja
 
-- Promocja poezji i literatury  
-- Wsparcie aktorów i twórców  
-- Edukacja literacka w środowisku cyfrowym  
+- Popularyzacja poezji i literatury w środowisku cyfrowym  
+- Wsparcie twórców i aktorów  
+- Tworzenie nowoczesnego narzędzia edukacyjnego  
 - Integracja środowiska kultury i edukacji  
 
-Aktualny status: **MVP / Proof of Concept** (backend + podstawowy frontend)
+Status projektu: **MVP / Proof of Concept**
 
 ---
 
 ## 🧱 Architektura MVP
 
-**Backend:**
-
+### Backend
 - Java 21  
 - Spring Boot 4.0.2  
-- REST API do nagrań, autorów i aktorów  
+- REST API (nagrania, autorzy, aktorzy)  
 - Spring Data JPA + Hibernate  
-- H2 Database (file-based)  
-- Flyway (wersjonowane migracje)  
+- H2 (środowisko developerskie)  
+- Flyway (wersjonowanie migracji)  
 - Gradle (Groovy DSL)  
 
-**Frontend:** (w trakcie)
+Warstwowa architektura:
+controller → service → repository → domain + DTO + mapper
 
+### Frontend (w trakcie rozwoju)
 - React 18 + TypeScript  
 - Vite  
-- Tailwind CSS (minimalistyczny styl Mudita-like)  
-- Howler.js / native Audio API (odtwarzacz)  
+- Tailwind CSS  
+- Audio API / Howler.js  
 
 ---
 
-## 🔊 Funkcje MVP (Etap 1)
+## 🔊 Funkcjonalności MVP
 
 - Lista nagrań (wiersze czytane przez aktorów)  
-- Profil aktora i autora (bio, zdjęcia, nagrania)  
+- Profil autora i aktora  
 - Odtwarzacz audio  
 - Synchronizowany tekst  
 - Publiczny dostęp bez logowania  
 
 ---
 
-## 🧱 Struktura repozytorium (MVP w Javie + React)
+## 📡 API & Dokumentacja
 
-poetry-stream/  
-├─ backend/                           # Spring Boot backend  
-│  ├─ build.gradle                    # konfiguracja Gradle  
-│  ├─ src/  
-│  │  ├─ main/  
-│  │  │  ├─ java/com/poetrystream/  
-│  │  │  │  ├─ PoetryStreamApplication.java     # klasa startowa  
-│  │  │  │  ├─ controller/  
-│  │  │  │  │  └─ RecordingController.java  
-│  │  │  │  ├─ domain/  
-│  │  │  │  │  └─ Recording.java  
-│  │  │  │  └─ service/  
-│  │  │  │     └─ RecordingService.java  
-│  │  │  └─ resources/  
-│  │  │     ├─ application.properties     # konfiguracja (H2, Flyway)  
-│  │  │     └─ db/migration/              # migracje Flyway (V1, V2...)  
-│  └─ gradlew, gradlew.bat, settings.gradle  
-│  
-├─ frontend/                          # React + TypeScript  
-│  ├─ src/  
-│  │  ├─ App.tsx  
-│  │  ├─ index.tsx  
-│  │  └─ components/  
-│  │     └─ RecordingPlayer.tsx  
-│  ├─ package.json  
-│  ├─ tsconfig.json  
-│  └─ vite.config.ts  
-│  
-├─ .gitignore  
-└─ README.md  
+Backend udostępnia REST API do obsługi nagrań, autorów i aktorów.
+
+Planowane rozszerzenia:
+
+- Integracja z OpenAPI / Swagger UI  
+- Automatyczna dokumentacja endpointów  
+- Standaryzacja odpowiedzi (ResponseEntity + global handler)  
+- Wersjonowanie API (np. /api/v1)
+
+Docelowo API będzie gotowe do integracji z aplikacją mobilną oraz usługami zewnętrznymi.
 
 ---
 
-## Jak uruchomić lokalnie
+## 🔐 Bezpieczeństwo (planowane)
+
+Wersja MVP działa bez uwierzytelniania (publiczny dostęp do treści).
+
+W kolejnych etapach planowane:
+
+- JWT Authentication  
+- Role użytkowników (ADMIN / EDUKATOR / USER)  
+- Ochrona endpointów administracyjnych  
+- Walidacja danych wejściowych  
+- Globalny handler wyjątków  
+
+---
+
+## 🌍 Internacjonalizacja (i18n)
+
+Platforma projektowana jest z myślą o obsłudze wielu języków.
+
+Planowane rozwiązania:
+
+- Backend: Spring MessageSource  
+- Frontend: mechanizm i18n (React i18next)  
+- Możliwość dynamicznego przełączania języka  
+- Wsparcie dla środowisk polonijnych  
+
+---
+
+## 🧩 Skalowalność i kierunek architektoniczny
+
+- Modularny monolit z podziałem domenowym  
+- Migracja z H2 do PostgreSQL w środowisku produkcyjnym  
+- Konteneryzacja (Docker)  
+- Możliwość integracji z zewnętrznym storage dla plików audio  
+- Przygotowanie pod przyszłe wydzielenie mikroserwisów
+
+---
+
+## ▶ Uruchomienie lokalne
 
 ### Backend
-
 ```bash
 cd backend
 ./gradlew bootRun
@@ -96,158 +121,134 @@ cd backend
 - H2 Console: http://localhost:8080/h2-console  
 (JDBC URL: jdbc:h2:file:./data/poetrydb, user: sa, pass: )  
 
-### Frontend
+---
 
+### Frontend
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-- Otwórz: http://localhost:5173  
+- Frontend: http://localhost:5173  
 
 ---
 
-## 🚀 ROADMAPA ROZWOJU
+## 🚀 Plan rozwoju
 
-### 📍 ETAP 1 – Prototyp
-
-- 3–5 nagrań, podstawowe CRUD dla nagrań  
-- Profile aktorów i autorów  
-- Synchronizowany tekst  
-- Estetyczny minimalistyczny interfejs: lista + odtwarzacz audio  
-- Deployment online, DTO + walidacja + MapStruct  
+### Etap 1 – Stabilizacja MVP
+- Ukończenie integracji frontend–backend  
+- Deployment środowiska testowego  
+- Walidacja danych, DTO, MapStruct  
+- Przygotowanie pod PostgreSQL  
 
 ---
 
-### 📍 ETAP 2 – Rozszerzenie edukacyjne (3–9 miesięcy)
-
-**Cel:** wzmocnienie komponentu edukacyjnego.  
-**Nowe funkcje:**  
-
-**👤 Profile autorów**  
-- Biografia  
-- Epoka literacka  
-- Najważniejsze dzieła  
-- Kontekst historyczny  
-- Powiązane nagrania  
-
-**🎭 Rozbudowane profile aktorów**  
-- Portfolio nagrań  
-- Informacje o współpracach  
-- Linki do teatrów  
-
-**🧠 Quizy literackie**  
-- Quizy dotyczące: autorów, epok literackich, interpretacji utworów  
-- Tryb edukacyjny dla szkół  
-- Wyniki i statystyki użytkownika  
-
-**🗂 Kategorie tematyczne**  
-- Epoki literackie  
-- Motywy (miłość, patriotyzm, natura)  
-- Poezja dla dzieci  
+### Etap 2 – Rozszerzenie edukacyjne
+- Rozbudowane profile autorów i aktorów  
+- Kategorie tematyczne i epoki literackie  
+- Quizy literackie dla szkół  
+- Panel administracyjny  
 
 ---
 
-### 📍 ETAP 3 – Komponent społecznościowy (9–18 miesięcy)
-
-**Cel:** budowa społeczności wokół literatury.  
-
-- 💬 Tablica społecznościowa  
-  - Komentarze do nagrań  
-  - Dyskusje interpretacyjne  
-  - Pytania edukacyjne  
-
-- ⭐ System ocen  
-  - Ocena interpretacji  
-  - Polecane nagrania  
-
-- 📚 Playlisty tematyczne  
-  - Poezja romantyczna  
-  - Wiersze dla dzieci  
-  - Interpretacje klasyczne / nowoczesne  
-
-- 👤 Konta użytkowników  
-  - Zapisywanie ulubionych nagrań  
-  - Historia odsłuchań  
-  - Postępy w quizach  
+### Etap 3 – Komponent społecznościowy
+- Konta użytkowników  
+- System ocen i komentarzy  
+- Playlisty tematyczne  
+- Historia odsłuchań i postępy  
 
 ---
 
-### 📍 ETAP 4 – Integracja z instytucjami kultury
-
-**Cel:** realny wpływ społeczny.  
-
-- 🎭 Informacje o spektaklach teatralnych  
-  - Kalendarium wydarzeń  
-  - Premiery  
-  - Linki do teatrów  
-  - Współpraca z instytucjami  
-
-- 📍 Mapa wydarzeń literackich  
-  - Spotkania autorskie  
-  - Wieczory poezji  
-  - Warsztaty  
+### Etap 4 – Integracja instytucjonalna
+- Informacje o wydarzeniach literackich  
+- Współpraca z teatrami i bibliotekami  
+- Kalendarz wydarzeń  
 
 ---
 
-### 📍 ETAP 5 – Transmisje na żywo (Live)
-
-**Cel:** interaktywna kultura online.  
-
-- 🔴 Transmisje live:  
-  - Czytania w bibliotekach  
-  - Odczyty w szkołach  
-  - Wydarzenia w teatrach  
-  - Poezja dla dzieci  
-
-- Możliwości:  
-  - Chat podczas transmisji  
-  - Archiwizacja nagrań  
-  - Specjalne cykle tematyczne  
+### Etap 5 – Transmisje na żywo
+- Streaming wydarzeń literackich  
+- Archiwizacja transmisji  
+- Interakcja użytkowników (chat)  
 
 ---
 
-### 📍 ETAP 6 – Wersja mobilna
-
+### Etap 6 – Wersja mobilna
 - Aplikacja React Native  
 - Tryb offline  
 - Powiadomienia o wydarzeniach  
-- Integracja z kalendarzem  
 
 ---
 
-### 📍 ETAP 7 – Precyzyjna synchronizacja tekstu
+## 🌍 Kierunek rozwoju
 
-- Timestampy dla wersów  
-- Synchronizacja słowo-po-słowie  
-- Edytor synchronizacji dla administratora  
-
----
-
-## 💡 Docelowa wizja
-
-PoetryStream jako:
+PoetryStream projektowany jest jako:
 
 - cyfrowa biblioteka poezji audio  
 - platforma edukacyjna dla szkół  
-- przestrzeń promocji aktorów  
-- hub wydarzeń literackich  
-- narzędzie do transmisji wydarzeń kulturalnych  
+- narzędzie promocji aktorów i twórców  
+- przestrzeń współpracy z instytucjami kultury  
+- platforma możliwa do wdrożenia również dla środowisk polonijnych  
 
 ---
 
-## 📈 Potencjalne modele rozwoju
+## 🧱 Struktura repozytorium (MVP w Javie + React)
 
-- Współpraca z bibliotekami  
-- Partnerstwa z teatrami  
+poetry-stream/  
+├─ backend/									# Spring Boot backend  
+│  ├─ build.gradle							# konfiguracja Gradle  
+│  ├─ src/  
+│  │  ├─ main/  
+│  │  │  ├─ java/com/poetrystream/backend/  
+│  │  │  │  ├─ BackendApplication.java		# klasa startowa  
+│  │  │  │  ├─ controller/  
+│  │  │  │  │&nbsp;&nbsp;└─ RecordingController.java  
+│  │  │  │  ├─ domain/  
+│  │  │  │  │&nbsp;&nbsp;├─ Recording.java  
+│  │  │  │  │&nbsp;&nbsp;└─ RecordingStatus.java      
+│  │  │  │  ├─ dto/  
+│  │  │  │  │&nbsp;&nbsp;├─ RecordingDto.java  
+│  │  │  │  │&nbsp;&nbsp;└─ RecordingKaraokeDto.java        
+│  │  │  │  ├─ exception/  
+│  │  │  │  │&nbsp;&nbsp;├─ GlobalExceptionHandler.java  
+│  │  │  │  │&nbsp;&nbsp;└─ ResourceNotFoundException.java  
+│  │  │  │  ├─ mapper/  
+│  │  │  │  │&nbsp;&nbsp;└─ RecordingMapper.java  
+│  │  │  │  ├─ repository/  
+│  │  │  │  │&nbsp;&nbsp;└─ RecordingRepository.java  
+│  │  │  │  └─ service/  
+│  │  │  │&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─ RecordingService.java  
+│  │  │  └─ resources/  
+│  │  │&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├─ application.yaml     	# konfiguracja (H2, Flyway)  
+│  │  │&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─ db/migration/			# migracje Flyway (V1, V2...)  
+│  └─ gradlew, gradlew.bat, settings.gradle  
+│  
+├─ frontend/								# React + TypeScript  
+│  ├─ src/  
+│  │  ├─ App.tsx  
+│  │  ├─ index.tsx  
+│  │  └─ components/  
+│  │&nbsp;&nbsp;&nbsp;&nbsp;└─ RecordingPlayer.tsx  
+│  ├─ package.json  
+│  ├─ tsconfig.json  
+│  └─ vite.config.ts  
+│  
+├─ .gitignore  
+└─ README.md  
+
+---
+
+## 📈 Potencjalne modele finansowania
+
+- Współpraca z bibliotekami i teatrami  
 - Patronaty instytucji kultury  
-- Subskrypcja premium  
-- Granty ministerialne i europejskie  
+- Subskrypcja premium (funkcje rozszerzone)  
+- Granty krajowe i europejskie  
 
 ---
 
 ## 📚 Status projektu
 
-- Aktualna faza: MVP (Proof of Concept)  
-- Cel: Rozwój do pełnoprawnej platformy edukacyjno-kulturalnej
+Aktualna faza: MVP (Proof of Concept)  
+Cel: rozwój do pełnoprawnej platformy edukacyjno-kulturalnej.
