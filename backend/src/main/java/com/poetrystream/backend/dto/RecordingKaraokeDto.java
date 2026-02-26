@@ -6,6 +6,6 @@ public record RecordingKaraokeDto(
         String id,
         String audioUrl,
         Integer startTimeSec,
-        List<String> lines
+        List<String> lines,
+        Integer lineCount
 ) {}
-
