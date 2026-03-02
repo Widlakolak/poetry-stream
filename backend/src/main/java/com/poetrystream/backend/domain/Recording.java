@@ -25,14 +25,6 @@ public class Recording {
     @Column(nullable = false)
     private String title;
 
-    @NotBlank(message = "Autor jest wymagany")
-    @Size(max = 255)
-    @Column(nullable = false)
-    private String author;
-
-    @Size(max = 255)
-    private String actor;
-
     @NotBlank(message = "URL nagrania jest wymagany")
     @Pattern(regexp = "^https?://.*\\.(mp3|wav|ogg|m4a)$")
     @Column(name = "audio_url", nullable = false, length = 512)
@@ -52,6 +44,14 @@ public class Recording {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private RecordingStatus status;
+
+    @ManyToOne
+    @JoinColumn(name = "poem_id",  nullable = false)
+    private Poem poem;
+
+    @ManyToOne
+    @JoinColumn(name = "actor_id")
+    private Actor actor;
 
     @PrePersist
     private void ensureId() {

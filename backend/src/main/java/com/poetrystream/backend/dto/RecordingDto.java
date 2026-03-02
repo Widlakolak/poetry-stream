@@ -1,27 +1,16 @@
 package com.poetrystream.backend.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.poetrystream.backend.domain.RecordingStatus;
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class RecordingDto {
-
-    private String id;
-
-    @NotBlank(message = "Tytuł jest wymagany")
-    private String title;
-
-    @NotBlank(message = "Autor jest wymagany")
-    private String author;
-    private String actor;
-
-    @NotBlank(message = "URL nagrania jest wymagany")
-    private String audioUrl;
-    private Integer startTimeSec;
-}
+public record RecordingDto(
+        String id,
+        String title,
+        String audioUrl,
+        Integer startTimeSec,
+        RecordingStatus status,
+        String poemId,
+        String poemTitle,
+        String poetName,
+        String actorId,
+        String actorName
+) {}
