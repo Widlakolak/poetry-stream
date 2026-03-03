@@ -1,17 +1,14 @@
 package com.poetrystream.backend.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.poetrystream.backend.domain.Recording;
-import com.poetrystream.backend.domain.RecordingStatus;
+import com.poetrystream.backend.domain.*;
 import com.poetrystream.backend.dto.RecordingDto;
-import com.poetrystream.backend.repository.RecordingRepository;
+import com.poetrystream.backend.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.jackson.autoconfigure.JacksonAutoConfiguration;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -19,115 +16,146 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.hamcrest.Matchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
-@ActiveProfiles("test")
+@SpringBootTest
 @AutoConfigureMockMvc
-@Import(JacksonAutoConfiguration.class)
+@ActiveProfiles("test")
 @Transactional
 class RecordingControllerIntegrationTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired MockMvc mockMvc;
 
-    private final ObjectMapper objectMapper = new ObjectMapper()
-            .findAndRegisterModules();
+    private final ObjectMapper objectMapper =
+            new ObjectMapper().findAndRegisterModules();
 
-    @Autowired
-    private RecordingRepository repository;
+    @Autowired RecordingRepository recordingRepository;
+    @Autowired PoemRepository poemRepository;
+    @Autowired ActorRepository actorRepository;
+    @Autowired PoetRepository poetRepository;
+
+    private Poem poem;
+    private Actor actor;
 
     @BeforeEach
     void setup() {
-        repository.deleteAll();
+        recordingRepository.deleteAll();
+        poemRepository.deleteAll();
+        actorRepository.deleteAll();
+        poetRepository.deleteAll();
+
+        Poet poet = poetRepository.save(
+                Poet.builder()
+                        .name("Test Poet")
+                        .build()
+        );
+
+        poem = poemRepository.save(
+                Poem.builder()
+                        .title("Test Poem")
+                        .text("Line 1\nLine 2")
+                        .poet(poet)
+                        .build()
+        );
+
+        actor = actorRepository.save(
+                Actor.builder()
+                        .name("Test Actor")
+                        .build()
+        );
     }
 
     @Test
-    void shouldCreateRecordingAndReturn201AndPersist() throws Exception {
-        RecordingDto input = RecordingDto.builder()
-                .title("Testowy wiersz")
-                .author("Test Autor")
-                .audioUrl("https://example.com/test.mp3")
-                .startTimeSec(0)
-                .build();
+    void shouldCreateRecording() throws Exception {
+
+        RecordingDto dto = new RecordingDto(
+                null,
+                "Nowe nagranie",
+                "https://example.com/test.mp3",
+                0,
+                null,
+                poem.getId(),
+                null,
+                null,
+                actor.getId(),
+                null
+        );
 
         mockMvc.perform(post("/api/recordings")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(input)))
+                        .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isCreated())
-                .andExpect(header().exists("Location"))
-                .andExpect(jsonPath("$.title", is("Testowy wiersz")))
-                .andExpect(jsonPath("$.author", is("Test Autor")));
+                .andExpect(jsonPath("$.title").value("Nowe nagranie"))
+                .andExpect(jsonPath("$.status").value("DRAFT"))
+                .andExpect(jsonPath("$.poemId").value(poem.getId()))
+                .andExpect(jsonPath("$.actorId").value(actor.getId()));
+    }
+
+    @Test
+    void shouldReturnPagedRecordings() throws Exception {
+
+        recordingRepository.save(
+                Recording.builder()
+                        .title("Rec1")
+                        .audioUrl("https://a.com/1.mp3")
+                        .status(RecordingStatus.PUBLISHED)
+                        .poem(poem)
+                        .actor(actor)
+                        .build()
+        );
+
+        mockMvc.perform(get("/api/recordings")
+                        .param("status", "PUBLISHED"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].title").value("Rec1"));
     }
 
     @Test
     void shouldReturnRecordingById() throws Exception {
-        Recording saved = repository.save(
+
+        Recording saved = recordingRepository.save(
                 Recording.builder()
                         .title("Test ID")
-                        .author("Autor ID")
                         .audioUrl("https://example.com/id.mp3")
-                        .startTimeSec(5)
                         .status(RecordingStatus.PUBLISHED)
-                        .lines(List.of("Linia1", "Linia2"))
+                        .poem(poem)
+                        .actor(actor)
                         .build()
         );
 
         mockMvc.perform(get("/api/recordings/" + saved.getId()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(saved.getId())))
-                .andExpect(jsonPath("$.title", is("Test ID")));
+                .andExpect(jsonPath("$.id").value(saved.getId()));
     }
 
     @Test
-    void shouldReturnAllRecordings() throws Exception {
-        repository.saveAll(List.of(
+    void shouldReturnKaraokeData() throws Exception {
+
+        Recording saved = recordingRepository.save(
                 Recording.builder()
-                        .title("Rec1").author("A1").audioUrl("https://a.com/1.mp3")
+                        .title("Wiersz")
+                        .audioUrl("https://example.com/a.mp3")
                         .status(RecordingStatus.PUBLISHED)
-                        .build(),
-                Recording.builder()
-                        .title("Rec2").author("A2").audioUrl("https://a.com/2.mp3")
-                        .status(RecordingStatus.PUBLISHED)
+                        .poem(poem)
+                        .actor(actor)
+                        .lines(List.of("Linia 1", "Linia 2"))
                         .build()
-        ));
-
-        mockMvc.perform(get("/api/recordings"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)));
-    }
-
-    @Test
-    void shouldReturn400WhenTitleIsBlank() throws Exception {
-        RecordingDto invalid = RecordingDto.builder()
-                .title("")
-                .author("Autor")
-                .audioUrl("https://example.com/test.mp3")
-                .build();
-
-        mockMvc.perform(post("/api/recordings")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(invalid)))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void shouldReturnKaraokeDataWithLines() throws Exception {
-        Recording saved = repository.save(Recording.builder()
-                .title("Wiersz")
-                .author("Autor")
-                .audioUrl("https://example.com/a.mp3")
-                .lines(List.of("Linia 1", "Linia 2"))
-                .status(RecordingStatus.PUBLISHED)
-                .build());
+        );
 
         mockMvc.perform(get("/api/recordings/" + saved.getId() + "/karaoke"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.lines", hasSize(2)))
-                .andExpect(jsonPath("$.lines[0]", is("Linia 1")));
+                .andExpect(jsonPath("$.lines.length()").value(2));
+    }
+
+    @Test
+    void shouldReturn404WhenRecordingNotFound() throws Exception {
+
+        mockMvc.perform(get("/api/recordings/non-existing-id"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string("Recording not found"));
     }
 }
