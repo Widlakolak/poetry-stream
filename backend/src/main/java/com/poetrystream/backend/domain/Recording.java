@@ -45,11 +45,11 @@ public class Recording {
     @Column(nullable = false)
     private RecordingStatus status;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "poem_id",  nullable = false)
     private Poem poem;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "actor_id")
     private Actor actor;
 

@@ -24,8 +24,8 @@ public class ActorController {
         return service.getById(id);
     }
 
-    @PostMapping
-    public ActorDto create(@RequestBody ActorDto dto) {
-        return service.create(dto);
-    }
+//    @PostMapping
+//    public ActorDto create(@RequestBody ActorDto dto) {
+//        return service.create(dto);
+//    }
 }

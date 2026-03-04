@@ -34,20 +34,20 @@ public class RecordingController {
         return service.getById(id);
     }
 
-    @PostMapping
-    public ResponseEntity<RecordingDto> create(
-            @Valid @RequestBody RecordingDto dto,
-            UriComponentsBuilder uriBuilder) {
-
-        RecordingDto saved = service.create(dto);
-
-        URI location = uriBuilder
-                .path("/api/recordings/{id}")
-                .buildAndExpand(saved.id())
-                .toUri();
-
-        return ResponseEntity.created(location).body(saved);
-    }
+//    @PostMapping
+//    public ResponseEntity<RecordingDto> create(
+//            @Valid @RequestBody RecordingDto dto,
+//            UriComponentsBuilder uriBuilder) {
+//
+//        RecordingDto saved = service.create(dto);
+//
+//        URI location = uriBuilder
+//                .path("/api/recordings/{id}")
+//                .buildAndExpand(saved.id())
+//                .toUri();
+//
+//        return ResponseEntity.created(location).body(saved);
+//    }
 
     @GetMapping("/{id}/karaoke")
     public RecordingKaraokeDto getKaraoke(@PathVariable String id) {

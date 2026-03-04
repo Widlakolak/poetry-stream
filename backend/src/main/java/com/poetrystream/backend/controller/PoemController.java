@@ -24,8 +24,8 @@ public class PoemController {
         return service.getById(id);
     }
 
-    @PostMapping
-    public PoemDto create(@RequestBody PoemDto dto) {
-        return service.create(dto);
-    }
+//    @PostMapping
+//    public PoemDto create(@RequestBody PoemDto dto) {
+//        return service.create(dto);
+//    }
 }

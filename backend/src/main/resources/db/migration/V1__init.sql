@@ -50,6 +50,11 @@ CREATE TABLE recording_lines (
         ON DELETE CASCADE
 );
 
+CREATE INDEX idx_poems_poet ON poems(poet_id);
+CREATE INDEX idx_recordings_poem ON recordings(poem_id);
+CREATE INDEX idx_recordings_actor ON recordings(actor_id);
+CREATE INDEX idx_lines_recording ON recording_lines(recording_id);
+
 -- =========================
 -- DEMO DATA
 -- =========================

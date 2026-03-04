@@ -67,31 +67,31 @@ class RecordingControllerIntegrationTest {
         );
     }
 
-    @Test
-    void shouldCreateRecording() throws Exception {
-
-        RecordingDto dto = new RecordingDto(
-                null,
-                "Nowe nagranie",
-                "https://example.com/test.mp3",
-                0,
-                null,
-                poem.getId(),
-                null,
-                null,
-                actor.getId(),
-                null
-        );
-
-        mockMvc.perform(post("/api/recordings")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(dto)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.title").value("Nowe nagranie"))
-                .andExpect(jsonPath("$.status").value("DRAFT"))
-                .andExpect(jsonPath("$.poemId").value(poem.getId()))
-                .andExpect(jsonPath("$.actorId").value(actor.getId()));
-    }
+//    @Test
+//    void shouldCreateRecording() throws Exception {
+//
+//        RecordingDto dto = new RecordingDto(
+//                null,
+//                "Nowe nagranie",
+//                "https://example.com/test.mp3",
+//                0,
+//                null,
+//                poem.getId(),
+//                null,
+//                null,
+//                actor.getId(),
+//                null
+//        );
+//
+//        mockMvc.perform(post("/api/recordings")
+//                        .contentType(MediaType.APPLICATION_JSON)
+//                        .content(objectMapper.writeValueAsString(dto)))
+//                .andExpect(status().isCreated())
+//                .andExpect(jsonPath("$.title").value("Nowe nagranie"))
+//                .andExpect(jsonPath("$.status").value("DRAFT"))
+//                .andExpect(jsonPath("$.poemId").value(poem.getId()))
+//                .andExpect(jsonPath("$.actorId").value(actor.getId()));
+//    }
 
     @Test
     void shouldReturnPagedRecordings() throws Exception {

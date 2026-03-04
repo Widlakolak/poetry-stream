@@ -123,6 +123,20 @@ cd backend
 
 ---
 
+### Swagger UI:
+```bash
+http://localhost:8080/swagger-ui.html
+```
+
+---
+
+### Health check:
+```bash
+http://localhost:8080/actuator/health
+```
+
+---
+
 ### Frontend
 ```bash
 cd frontend
@@ -131,6 +145,24 @@ npm run dev
 ```
 
 - Frontend: http://localhost:5173  
+
+---
+
+### Available Endpoints (MVP)
+```bash
+GET /poets
+GET /poets/{id}
+
+GET /actors
+GET /actors/{id}
+
+GET /poems
+GET /poems/{id}
+
+GET /recordings
+GET /recordings/{id}
+GET /recordings/{id}/lines
+```
 
 ---
 
