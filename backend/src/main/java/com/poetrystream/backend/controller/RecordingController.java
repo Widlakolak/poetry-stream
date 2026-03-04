@@ -6,6 +6,8 @@ import com.poetrystream.backend.dto.RecordingKaraokeDto;
 import com.poetrystream.backend.service.RecordingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -24,7 +26,7 @@ public class RecordingController {
     @GetMapping
     public Page<RecordingDto> getAll(
             @RequestParam(required = false) RecordingStatus status,
-            Pageable pageable) {
+            @ParameterObject @PageableDefault(sort = "id") Pageable pageable) { // Dodaj @ParameterObject
 
         return service.getAll(status, pageable);
     }

@@ -150,18 +150,26 @@ npm run dev
 
 ### Available Endpoints (MVP)
 ```bash
-GET /poets
-GET /poets/{id}
+recording
 
-GET /actors
-GET /actors/{id}
+GET /api/recordings
+GET /api/recordings/{id}
+GET /api/recordings/{id}/karaoke
 
-GET /poems
-GET /poems/{id}
+poet
 
-GET /recordings
-GET /recordings/{id}
-GET /recordings/{id}/lines
+GET /api/poets
+GET /api/poets/{id}
+
+poem
+
+GET /api/poems
+GET /api/poems/{id}
+
+actor
+
+GET /api/actors
+GET /api/actors/{id}
 ```
 
 ---
