@@ -1,11 +1,16 @@
-const BASE_URL = import.meta.env.VITE_API_URL;
+const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
 
 export async function apiGet<T>(path: string): Promise<T> {
-  const res = await fetch(`${BASE_URL}${path}`);
+  const response = await fetch(`${BASE_URL}${path}`, {
+    headers: {
+      Accept: "application/json",
+    },
+  });
 
-  if (!res.ok) {
-    throw new Error("API error");
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`GET ${path} failed (${response.status}): ${errorText || response.statusText}`);
   }
 
-  return res.json();
+  return (await response.json()) as T;
 }

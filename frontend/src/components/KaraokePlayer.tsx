@@ -1,82 +1,124 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
-type KaraokePlayerProps = {
-  audioUrl: string;
+interface KaraokePlayerProps {
+  mediaUrl: string;
   startTimeSec: number;
   lines: string[];
-  lineCount: number;
-};
+  autoPlayToken: number;
+}
 
-const KaraokePlayer: React.FC<KaraokePlayerProps> = ({ audioUrl, startTimeSec, lines, lineCount }) => {
+const VIDEO_EXTENSIONS = [".mp4", ".webm", ".ogg", ".mov", ".m4v", ".m3u8"];
+const WINDOW_SIZE = 7;
+
+function isVideoUrl(url: string): boolean {
+  const lower = url.toLowerCase();
+  return VIDEO_EXTENSIONS.some((extension) => lower.includes(extension));
+}
+
+export default function KaraokePlayer({ mediaUrl, startTimeSec, lines, autoPlayToken }: KaraokePlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [duration, setDuration] = useState(0);
   const [currentLineIndex, setCurrentLineIndex] = useState(0);
+  const [fullTextOpen, setFullTextOpen] = useState(false);
+
+  const videoMode = useMemo(() => isVideoUrl(mediaUrl), [mediaUrl]);
 
   useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
+    const media = videoMode ? videoRef.current : audioRef.current;
+    if (!media) {
+      return;
+    }
 
-    const handleLoaded = () => {
-      audio.currentTime = startTimeSec;
-      audio.play().catch(err => console.log("Autoplay error:", err));
+    const handleLoadedMetadata = () => {
+      setDuration(media.duration || 0);
     };
-    audio.addEventListener("loadedmetadata", handleLoaded);
 
-    const interval = setInterval(() => {
-      if (!audio || audio.duration === 0) return;
-      const elapsed = audio.currentTime - startTimeSec;
-      if (elapsed >= 0) {
-        const timePerLine = (audio.duration - startTimeSec) / lineCount;
-        const index = Math.min(Math.floor(elapsed / timePerLine), lines.length - 1);
-        setCurrentLineIndex(index);
-
-        if (containerRef.current) {
-          const currentLineEl = containerRef.current.children[index] as HTMLElement;
-          if (currentLineEl) {
-            currentLineEl.scrollIntoView({ behavior: "smooth", block: "center" });
-          }
-        }
+    const handleTimeUpdate = () => {
+      const elapsed = media.currentTime - startTimeSec;
+      if (elapsed < 0) {
+        setCurrentLineIndex(0);
+        return;
       }
-    }, 100);
+
+      const totalLines = Math.max(lines.length, 1);
+      const effectiveDuration = Math.max(duration - startTimeSec, 0.01);
+      const timePerLine = effectiveDuration / totalLines;
+      const index = Math.min(Math.floor(elapsed / timePerLine), Math.max(lines.length - 1, 0));
+      setCurrentLineIndex(index);
+    };
+
+    media.addEventListener("loadedmetadata", handleLoadedMetadata);
+    media.addEventListener("timeupdate", handleTimeUpdate);
 
     return () => {
-      clearInterval(interval);
-      audio.removeEventListener("loadedmetadata", handleLoaded);
+      media.removeEventListener("loadedmetadata", handleLoadedMetadata);
+      media.removeEventListener("timeupdate", handleTimeUpdate);
     };
-  }, [startTimeSec, lines, lineCount]);
+  }, [duration, lines.length, startTimeSec, videoMode]);
+
+  useEffect(() => {
+    const media = videoMode ? videoRef.current : audioRef.current;
+    if (!media || autoPlayToken === 0) {
+      return;
+    }
+
+    media.currentTime = startTimeSec;
+    media.play().catch(() => undefined);
+  }, [autoPlayToken, startTimeSec, videoMode]);
+
+  const windowStart = Math.max(0, currentLineIndex - Math.floor(WINDOW_SIZE / 2));
+  const windowEnd = Math.min(lines.length, windowStart + WINDOW_SIZE);
+  const adjustedStart = Math.max(0, windowEnd - WINDOW_SIZE);
+  const visibleLines = lines.slice(adjustedStart, windowEnd);
 
   return (
-    <div>
-      <audio ref={audioRef} src={audioUrl} controls style={{ width: "100%", marginBottom: "10px" }} />
+    <div className="karaoke-player">
+      {videoMode ? (
+        <video ref={videoRef} src={mediaUrl} controls className="karaoke-video" preload="metadata" />
+      ) : (
+        <audio ref={audioRef} src={mediaUrl} controls className="karaoke-audio" preload="metadata" />
+      )}
 
-      <div
-        ref={containerRef}
-        style={{
-          maxHeight: "300px",
-          overflowY: "auto",
-          border: "1px solid #ddd",
-          borderRadius: "8px",
-          padding: "10px",
-          background: "#f9f9f9",
-        }}
-      >
-        {lines.map((line, idx) => (
-          <p
-            key={idx}
-            style={{
-              margin: "5px 0",
-              fontWeight: idx === currentLineIndex ? "bold" : "normal",
-              color: idx === currentLineIndex ? "#1DB954" : "#333",
-              fontSize: idx === currentLineIndex ? "1.2em" : "1em",
-              transition: "all 0.2s",
-            }}
-          >
-            {line}
-          </p>
-        ))}
-      </div>
+      {!videoMode && (
+        <>
+          <button className="karaoke-window" onClick={() => setFullTextOpen(true)} title="Kliknij, aby zobaczyć cały tekst">
+            {visibleLines.map((line, idx) => {
+              const absoluteIndex = adjustedStart + idx;
+              const distance = Math.abs(absoluteIndex - currentLineIndex);
+              const alpha = distance <= 1 ? 1 : Math.max(1 - (distance - 1) * 0.32, 0.2);
+
+              return (
+                <p
+                  className={`karaoke-line ${absoluteIndex === currentLineIndex ? "is-active" : ""}`}
+                  key={`${line}-${absoluteIndex}`}
+                  style={{ opacity: alpha }}
+                >
+                  {line}
+                </p>
+              );
+            })}
+          </button>
+
+          {fullTextOpen && (
+            <div className="search-modal-backdrop" onClick={() => setFullTextOpen(false)}>
+              <section className="search-modal full-text-modal" onClick={(event) => event.stopPropagation()}>
+                <h2>Pełny tekst</h2>
+                <div className="full-text-content">
+                  {lines.map((line, idx) => (
+                    <p key={`${line}-${idx}`} className={idx === currentLineIndex ? "is-active" : ""}>
+                      {line}
+                    </p>
+                  ))}
+                </div>
+                <button className="search-close" onClick={() => setFullTextOpen(false)}>
+                  Zamknij
+                </button>
+              </section>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
-};
-
-export default KaraokePlayer;
+}

@@ -1,50 +1,135 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { poetryApi } from "../api/poetryApi";
+import type { Recording, RecordingKaraoke } from "../types/domain";
 import KaraokePlayer from "./KaraokePlayer";
 
-type RecordingKaraokeDto = {
-  id: string;
-  audioUrl: string;
-  startTimeSec: number;
-  lines: string[];
-  lineCount?: number;
-};
+interface RecordingPlayerProps {
+  recording: Recording | null;
+  embedded?: boolean;
+  heading?: string;
+  description?: string;
+  showRecordingTitle?: boolean;
+  titleOverride?: string;
+}
 
-const RecordingPlayer: React.FC = () => {
-  const [recording, setRecording] = useState<RecordingKaraokeDto | null>(null);
-  const [loading, setLoading] = useState(true);
+function isYouTubeUrl(url: string): boolean {
+  const lower = url.toLowerCase();
+  return lower.includes("youtube.com/embed/") || lower.includes("youtube.com/watch") || lower.includes("youtu.be/");
+}
+
+function toYouTubeEmbedUrl(url: string): string {
+  if (url.includes("youtube.com/embed/")) {
+    return url;
+  }
+
+  if (url.includes("watch?v=")) {
+    const videoId = url.split("watch?v=")[1]?.split("&")[0];
+    return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
+  }
+
+  if (url.includes("youtu.be/")) {
+    const videoId = url.split("youtu.be/")[1]?.split("?")[0];
+    return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
+  }
+
+  return url;
+}
+
+export default function RecordingPlayer({
+  recording,
+  embedded = false,
+  heading = "Odtwarzacz",
+  description,
+  showRecordingTitle = true,
+  titleOverride,
+}: RecordingPlayerProps) {
+  const [karaoke, setKaraoke] = useState<RecordingKaraoke | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [autoPlayToken, setAutoPlayToken] = useState(0);
+
+  const isYouTube = Boolean(recording?.audioUrl && isYouTubeUrl(recording.audioUrl));
 
   useEffect(() => {
-    fetch("http://localhost:8080/api/recordings/demo-1/karaoke")
-      .then((res) => res.json())
-      .then((data) => {
-        setRecording(data);
-        setLoading(false);
+    if (!recording || isYouTube) {
+      return;
+    }
+
+    let cancelled = false;
+
+    poetryApi
+      .getRecordingKaraoke(recording.id)
+      .then((response) => {
+        if (!cancelled) {
+          setError(null);
+          setKaraoke(response);
+        }
       })
-      .catch((err) => console.error("Błąd podczas pobierania:", err));
-  }, []);
+      .catch((err: Error) => {
+        if (!cancelled) {
+          setError(err.message);
+        }
+      });
 
-  if (loading || !recording) return <div>Ładowanie...</div>;
+    return () => {
+      cancelled = true;
+    };
+  }, [recording, isYouTube]);
 
-  return (
-    <div
-      style={{
-        maxWidth: "600px",
-        margin: "20px auto",
-        background: "white",
-        padding: "20px",
-        borderRadius: "8px",
-        boxShadow: "0 0 10px rgba(0,0,0,0.2)",
-      }}
-    >
-      <h1>{recording.id}</h1>
-      <KaraokePlayer
-        audioUrl={recording.audioUrl}
-        startTimeSec={recording.startTimeSec}
-        lines={recording.lines}
-        lineCount={recording.lineCount!}
-      />
+  const title = useMemo(() => {
+    if (titleOverride) {
+      return titleOverride;
+    }
+    return recording ? recording.title : "Wybierz nagranie";
+  }, [recording, titleOverride]);
+
+  const isLoading = Boolean(recording) && !isYouTube && !karaoke && !error;
+
+  const content = (
+    <div className="recording-player-content">
+      <header className="panel-header">
+        <h2>{heading}</h2>
+        {description ? <p>{description}</p> : null}
+        {showRecordingTitle ? <p>{title}</p> : null}
+      </header>
+
+      {!recording ? <p className="muted">Brak nagrań opublikowanych przez backend.</p> : null}
+
+      {recording && !isYouTube ? (
+        <button className="play-trigger" onClick={() => setAutoPlayToken((current) => current + 1)}>
+          Odtwórz
+        </button>
+      ) : null}
+
+      {isLoading ? <p className="muted">Ładowanie karaoke...</p> : null}
+      {error ? <p className="error-text">{error}</p> : null}
+
+      {recording && isYouTube ? (
+        <div className="youtube-frame-wrap">
+          <iframe
+            className="youtube-frame"
+            src={toYouTubeEmbedUrl(recording.audioUrl)}
+            title={recording.title}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerPolicy="strict-origin-when-cross-origin"
+            allowFullScreen
+          />
+        </div>
+      ) : null}
+
+      {karaoke && !error && !isYouTube ? (
+        <KaraokePlayer
+          mediaUrl={karaoke.audioUrl}
+          startTimeSec={karaoke.startTimeSec}
+          lines={karaoke.lines}
+          autoPlayToken={autoPlayToken}
+        />
+      ) : null}
     </div>
   );
-};
 
-export default RecordingPlayer;
+  if (embedded) {
+    return content;
+  }
+
+  return <section className="panel panel-player">{content}</section>;
+}

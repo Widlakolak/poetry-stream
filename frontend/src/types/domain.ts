@@ -21,18 +21,30 @@ export interface Poem {
   poetId: string;
 }
 
+export type RecordingStatus = "PUBLISHED";
+
 export interface Recording {
   id: string;
   title: string;
   audioUrl: string;
   startTimeSec: number;
-  status: "PUBLISHED";
+  status: RecordingStatus;
   poemId: string;
   actorId: string;
 }
 
-export interface RecordingLine {
-  recordingId: string;
-  lineOrder: number;
-  lineText: string;
+export interface RecordingKaraoke {
+  id: string;
+  audioUrl: string;
+  startTimeSec: number;
+  lines: string[];
+  lineCount: number;
+}
+
+export interface SpringPage<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
 }
