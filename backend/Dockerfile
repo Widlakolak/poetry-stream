@@ -1,4 +1,9 @@
-FROM eclipse-temurin:21-jdk
+FROM eclipse-temurin:21-jre
+
 WORKDIR /app
-COPY build/libs/*.jar app.jar
-ENTRYPOINT ["java","-jar","app.jar"]
+
+COPY poetry-stream.jar /app/app.jar
+
+EXPOSE 8080
+
+ENTRYPOINT ["java","-XX:MaxRAMPercentage=75","-jar","/app/app.jar","--spring.profiles.active=prod"]
