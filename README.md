@@ -8,9 +8,11 @@ Projekt łączy technologię Java + Spring Boot z frontem React, umożliwiając 
 
 ## 📌 Project Overview
 
-Educational audio-literature streaming platform built with Java 21 & Spring Boot 4.0.2.
+PoetryStream is an educational audio streaming platform for poetry and literary works built with Java 21 and Spring Boot.
 
-PoetryStream is a modular backend-driven platform designed to deliver high-quality audio recordings of poetry and literary works.
+PoetryStream is a modular backend-driven platform designed to deliver high-quality audio recordings of poetry and literary works.\
+Architecture designed as a containerized modular monolith with secure public access via Cloudflare Tunnel.\
+Repository organized as a modular monolith with clear domain separation (controller → service → repository).
 
 ---
 
@@ -22,6 +24,71 @@ PoetryStream is a modular backend-driven platform designed to deliver high-quali
 - Integracja środowiska kultury i edukacji  
 
 Status projektu: **MVP / Proof of Concept**
+
+---
+
+## ☁️ Deployment
+
+### Publiczna instancja testowa:  ![CI](https://github.com/piotrwiedlocha/poetry-stream/actions/workflows/ci.yml/badge.svg)
+👉 https://poetrystream.qzz.io/
+
+PoetryStream działa na lekkiej infrastrukturze self-hosted.
+
+## 🏗 System Architecture
+
+```mermaid
+flowchart TD
+
+User[Internet
+User]
+CF[Cloudflare CDN
+DNS, TLS, security]
+Tunnel[Cloudflare
+Tunnel secure public access]
+
+subgraph QNAP NAS - Docker Host
+  Nginx[Nginx
+Reverse Proxy]
+  Frontend[React Frontend]
+  Backend[Spring Boot API]
+  DB[(Database)]
+end
+
+User --> CF
+CF --> Tunnel
+Tunnel --> Nginx
+Nginx --> Frontend
+Nginx --> Backend
+Backend --> DB
+```
+
+Nginx działa również jako **reverse proxy**, dzięki czemu frontend komunikuje się z API przez:
+
+```bash
+/api/*
+```
+
+Takie podejście upraszcza konfigurację środowisk oraz zwiększa bezpieczeństwo (brak otwartych portów na serwerze).
+
+---
+
+## ⚙️ CI/CD & DevOps
+
+```mermaid
+graph LR
+    subgraph Etap_CI [Etap CI: Budowanie i Testy]
+        Code[Push Code] --> Test[Gradle Build]
+        Test --> Docker[Docker Build]
+    end
+
+    subgraph Etap_CD [Etap CD: Wdrożenie]
+        GHCR[Push to GHCR] --> Deploy[Auto-deploy]
+        Deploy --> Live[Live Instance]
+    end
+
+    Docker ==> GHCR
+```
+Security & Secrets: Wszystkie klucze dostępowe (SSH, API Tokens) są zarządzane przez zaszyfrowane mechanizmy GitHub Secrets.
 
 ---
 
@@ -39,11 +106,17 @@ Status projektu: **MVP / Proof of Concept**
 Warstwowa architektura:
 controller → service → repository → domain + DTO + mapper
 
-### Frontend (w trakcie rozwoju)
+### Frontend
 - React 18 + TypeScript  
 - Vite  
 - Tailwind CSS  
 - Audio API / Howler.js  
+
+### Infrastruktura
+- Docker
+- Nginx
+- Cloudflare Tunnel
+- QNAP NAS
 
 ---
 
@@ -75,6 +148,13 @@ Docelowo API będzie gotowe do integracji z aplikacją mobilną oraz usługami z
 ## 🔐 Bezpieczeństwo (planowane)
 
 Wersja MVP działa bez uwierzytelniania (publiczny dostęp do treści).
+
+Aplikacja publiczna jest chroniona przez:
+
+- Cloudflare CDN
+- Cloudflare Tunnel (no open server ports)
+- Nginx reverse proxy
+- Container isolation (Docker)
 
 W kolejnych etapach planowane:
 
@@ -109,7 +189,18 @@ Planowane rozwiązania:
 
 ---
 
-## ▶ Uruchomienie lokalne
+### ▶ Uruchomienie lokalne
+
+### 🚀 Quick Start
+
+## Run with Docker
+
+```bash
+git clone https://github.com/your-repo/poetrystream.git
+cd poetrystream
+
+docker compose up -d
+```
 
 ### Backend
 ```bash
@@ -237,65 +328,101 @@ PoetryStream projektowany jest jako:
 
 ## 🧱 Struktura repozytorium (MVP w Javie + React)
 
-poetry-stream/\
-├─&nbsp;&nbsp;backend/&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;#&nbsp;Spring&nbsp;Boot&nbsp;backend\
-│&nbsp;&nbsp;&nbsp;&nbsp;├─&nbsp;&nbsp;build.gradle&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;#&nbsp;konfiguracja&nbsp;Gradle\
-│&nbsp;&nbsp;&nbsp;&nbsp;├─&nbsp;&nbsp;src/\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;├─&nbsp;&nbsp;main/\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;├─&nbsp;&nbsp;java/com/poetrystream/backend/\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;├─&nbsp;&nbsp;BackendApplication.java&emsp;&emsp;#&nbsp;&nbsp;klasa&nbsp;&nbsp;startowa\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;├─&nbsp;&nbsp;controller/\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;├─&nbsp;&nbsp;ActorController.java\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;├─&nbsp;&nbsp;PoetController.java\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;├─&nbsp;&nbsp;PoemController.java\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;└─&nbsp;&nbsp;RecordingController.java\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;├─&nbsp;&nbsp;domain/\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;├─&nbsp;&nbsp;Actor.java\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;├─&nbsp;&nbsp;Poet.java\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;├─&nbsp;&nbsp;Poem.java\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;├─&nbsp;&nbsp;Recording.java\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;└─&nbsp;&nbsp;RecordingStatus.java\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;├─&nbsp;&nbsp;dto/\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;├─&nbsp;&nbsp;ActorDto.java\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;├─&nbsp;&nbsp;PoetDto.java\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;├─&nbsp;&nbsp;PoemDto.java\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;├─&nbsp;&nbsp;RecordingDto.java\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;└─&nbsp;&nbsp;RecordingKaraokeDto.java\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;├─&nbsp;&nbsp;exception/\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;├─&nbsp;&nbsp;GlobalExceptionHandler.java\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;└─&nbsp;&nbsp;ResourceNotFoundException.java\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;├─&nbsp;&nbsp;mapper/\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;├─&nbsp;&nbsp;ActorMapper.java\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;├─&nbsp;&nbsp;PoetMapper.java\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;├─&nbsp;&nbsp;PoemMapper.java\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;└─&nbsp;&nbsp;RecordingMapper.java\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;├─&nbsp;&nbsp;repository/\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;├─&nbsp;&nbsp;ActorRepository.java\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;├─&nbsp;&nbsp;PoetRepository.java\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;├─&nbsp;&nbsp;PoemRepository.java\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;└─&nbsp;&nbsp;RecordingRepository.java\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;└─&nbsp;&nbsp;service/\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├─&nbsp;&nbsp;ActorService.java\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├─&nbsp;&nbsp;PoetService.java\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├─&nbsp;&nbsp;PoemService.java\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─&nbsp;&nbsp;RecordingService.java\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;└─&nbsp;&nbsp;resources/\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├─&nbsp;&nbsp;application.yaml&emsp;&emsp;&emsp;#&nbsp;&nbsp;konfiguracja&nbsp;&nbsp;(H2,&nbsp;&nbsp;Flyway)\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─&nbsp;&nbsp;db/migration/&emsp;&emsp;&emsp;&emsp;#&nbsp;&nbsp;migracje&nbsp;&nbsp;Flyway&nbsp;&nbsp;(V1,&nbsp;&nbsp;V2...)\
-│&nbsp;&nbsp;&nbsp;&nbsp;└─&nbsp;&nbsp;gradlew,&nbsp;&nbsp;gradlew.bat,&nbsp;&nbsp;settings.gradle\
-│\
-├─&nbsp;&nbsp;frontend/&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;#&nbsp;&nbsp;React&nbsp;&nbsp;+&nbsp;&nbsp;TypeScript\
-│&nbsp;&nbsp;&nbsp;&nbsp;├─&nbsp;&nbsp;src/\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;├─&nbsp;&nbsp;App.tsx\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;├─&nbsp;&nbsp;index.tsx\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;└─&nbsp;&nbsp;components/\
-│&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;└─&nbsp;&nbsp;RecordingPlayer.tsx\
-│&nbsp;&nbsp;&nbsp;&nbsp;├─&nbsp;&nbsp;package.json\
-│&nbsp;&nbsp;&nbsp;&nbsp;├─&nbsp;&nbsp;tsconfig.json\
-│&nbsp;&nbsp;&nbsp;&nbsp;└─&nbsp;&nbsp;vite.config.ts\
-│\
-├─&nbsp;&nbsp;.gitignore\
-└─&nbsp;&nbsp;README.md\
+```text
+poetry-stream/
+├─ backend/                         # Spring Boot backend
+│  ├─ build.gradle                  # konfiguracja Gradle
+│  ├─ src/
+│  │  ├─ main/
+│  │  │  ├─ java/com/poetrystream/backend/
+│  │  │  │  ├─ BackendApplication.java
+│  │  │  │  ├─ controller/
+│  │  │  │  │  ├─ ActorController.java
+│  │  │  │  │  ├─ PoetController.java
+│  │  │  │  │  ├─ PoemController.java
+│  │  │  │  │  └─ RecordingController.java
+│  │  │  │  ├─ domain/
+│  │  │  │  │  ├─ Actor.java
+│  │  │  │  │  ├─ Poet.java
+│  │  │  │  │  ├─ Poem.java
+│  │  │  │  │  ├─ Recording.java
+│  │  │  │  │  └─ RecordingStatus.java
+│  │  │  │  ├─ dto/
+│  │  │  │  │  ├─ ActorDto.java
+│  │  │  │  │  ├─ PoetDto.java
+│  │  │  │  │  ├─ PoemDto.java
+│  │  │  │  │  ├─ RecordingDto.java
+│  │  │  │  │  └─ RecordingKaraokeDto.java
+│  │  │  │  ├─ exception/
+│  │  │  │  │  ├─ GlobalExceptionHandler.java
+│  │  │  │  │  └─ ResourceNotFoundException.java
+│  │  │  │  ├─ mapper/
+│  │  │  │  │  ├─ ActorMapper.java
+│  │  │  │  │  ├─ PoetMapper.java
+│  │  │  │  │  ├─ PoemMapper.java
+│  │  │  │  │  └─ RecordingMapper.java
+│  │  │  │  ├─ repository/
+│  │  │  │  │  ├─ ActorRepository.java
+│  │  │  │  │  ├─ PoetRepository.java
+│  │  │  │  │  ├─ PoemRepository.java
+│  │  │  │  │  └─ RecordingRepository.java
+│  │  │  │  └─ service/
+│  │  │  │     ├─ ActorService.java
+│  │  │  │     ├─ PoetService.java
+│  │  │  │     ├─ PoemService.java
+│  │  │  │     └─ RecordingService.java
+│  │  └─ resources/
+│  │     ├─ application.yaml        # konfiguracja (H2, Flyway)
+│  │     └─ db/migration/           # migracje Flyway
+│  └─ gradlew, gradlew.bat, settings.gradle
+│
+├─ frontend/                        # React + TypeScript
+│  ├─ src/
+│  │  ├─ App.tsx
+│  │  ├─ index.tsx
+│  │  └─ components/
+│  │     └─ RecordingPlayer.tsx
+│  ├─ package.json
+│  ├─ tsconfig.json
+│  └─ vite.config.ts
+│
+├─ .gitignore
+└─ README.md
+```
+```mermaid
+erDiagram
+
+POET ||--o{ POEM : writes
+POEM ||--o{ RECORDING : has
+ACTOR ||--o{ RECORDING : performs
+
+POET {
+  Long id
+  String name
+  String bio
+}
+
+POEM {
+  Long id
+  String title
+  Text text
+  Long poet_id
+}
+
+ACTOR {
+  Long id
+  String name
+  String bio
+}
+
+RECORDING {
+  Long id
+  Long poem_id
+  Long actor_id
+  String audio_url
+  Integer start_time_sec
+}
+```
 
 ---
 

@@ -1,11 +1,33 @@
-const BASE_URL = import.meta.env.VITE_API_URL;
+function apiUrl(path: string): string {
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  return normalized.startsWith("/api") ? normalized : `/api${normalized}`;
+}
 
 export async function apiGet<T>(path: string): Promise<T> {
-  const res = await fetch(`${BASE_URL}${path}`);
+  const url = apiUrl(path);
 
-  if (!res.ok) {
-    throw new Error("API error");
+  const response = await fetch(url, {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `GET ${url} failed (${response.status}): ${errorText || response.statusText}`
+    );
   }
 
-  return res.json();
+  const contentType = response.headers.get("content-type") ?? "";
+
+  if (!contentType.includes("json")) {
+    const preview = (await response.text()).slice(0, 200);
+    throw new Error(
+      `GET ${url} returned non-JSON response (${contentType}): ${preview}`
+    );
+  }
+
+  return (await response.json()) as T;
 }

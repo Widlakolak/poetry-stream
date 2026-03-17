@@ -25,18 +25,16 @@ repositories {
 }
 
 dependencies {
-    implementation("org.springframework.boot:spring-boot-h2console")
+    implementation("org.postgresql:postgresql")
+    runtimeOnly("com.h2database:h2")
+
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-flyway")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2")
-
-    // Baza danych
-    runtimeOnly("com.h2database:h2")
-// runtimeOnly("org.postgresql:postgresql")
-
+    implementation("org.flywaydb:flyway-database-postgresql")
 
     // Lombok + MapStruct
     compileOnly("org.projectlombok:lombok")
@@ -51,8 +49,16 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-data-jpa")
     // testImplementation("org.springframework.security:spring-security-test")
 
+    // H2 tylko do testów
+    testRuntimeOnly("com.h2database:h2")
+    testImplementation("org.springframework.boot:spring-boot-h2console")
+
     // JUnit 6
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 tasks.withType<Test> { useJUnitPlatform() }
+
+tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
+    archiveFileName.set("poetry-stream.jar")
+}
