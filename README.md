@@ -208,6 +208,9 @@ cd backend
 ./gradlew bootRun
 ```
 
+> Uwaga: profil `prod` oczekuje PostgreSQL. Poza Docker Compose ustaw host na lokalny serwer, np.
+> `DB_HOST=localhost DB_PORT=5432 DB_NAME=poetrystream DB_USERNAME=poetry DB_PASSWORD=poetrypassword`.
+
 - API dostępne na: http://localhost:8080  
 - H2 Console: http://localhost:8080/h2-console  
 (JDBC URL: jdbc:h2:file:./data/poetrydb, user: sa, pass: )  

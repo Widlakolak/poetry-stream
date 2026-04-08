@@ -6,9 +6,9 @@ spring:
     name: poetrystream-backend
 
   datasource:
-    url: jdbc:postgresql://postgres:5432/poetrystream
-    username: poetry
-    password: poetrypassword
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:poetrystream}
+    username: ${DB_USERNAME:poetry}
+    password: ${DB_PASSWORD:poetrypassword}
     driver-class-name: org.postgresql.Driver
 
   jpa:

@@ -1,50 +1,28 @@
-name: Build Push and Deploy
+name: Build & Push Images
 
 on:
   push:
-    branches: [ main ]
+    branches: [ "main" ]
 
 jobs:
-
-  docker:
+  build-and-push:
     runs-on: ubuntu-latest
-    environment: production
 
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Login to GitHub Container Registry
-        run: echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u widlakolak --password-stdin
+      - name: Login to GHCR
+        run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-      - name: Build backend image
+      - name: Build & push backend
         run: |
-          docker build -t ghcr.io/widlakolak/poetrystream-backend:latest ./backend
+          IMAGE_NAME=$(echo "ghcr.io/${{ github.repository }}/backend:latest" | tr '[:upper:]' '[:lower:]')
+          docker build -t $IMAGE_NAME ./backend
+          docker push $IMAGE_NAME
 
-      - name: Push backend image
+      - name: Build & push frontend
         run: |
-          docker push ghcr.io/widlakolak/poetrystream-backend:latest
-
-      - name: Build frontend image
-        run: |
-          docker build -t ghcr.io/widlakolak/poetrystream-frontend:latest ./frontend
-
-      - name: Push frontend image
-        run: |
-          docker push ghcr.io/widlakolak/poetrystream-frontend:latest
-
-  deploy:
-    needs: docker
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Deploy to QNAP
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.QNAP_HOST }}
-          username: ${{ secrets.QNAP_USER }}
-          password: ${{ secrets.QNAP_PASSWORD }}
-          script: |
-            cd /share/CACHEDEV1_DATA/Container/poetrystream
-            docker compose pull
-            docker compose up -d
+          IMAGE_NAME=$(echo "ghcr.io/${{ github.repository }}/frontend:latest" | tr '[:upper:]' '[:lower:]')
+          docker build -t $IMAGE_NAME ./frontend
+          docker push $IMAGE_NAME
