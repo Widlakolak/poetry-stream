@@ -1,40 +1,42 @@
 # PoetryStream
 
-PoetryStream to edukacyjna platforma cyfrowa popularyzująca poezję poprzez profesjonalne interpretacje aktorskie oraz interaktywne formy odbioru literatury.
-PoetryStream wykorzystuje nowoczesne technologie, by ułatwić dostęp do literatury klasycznej poprzez materiały audio, interaktywne rozwiązania i dystrybucję cyfrową.
+PoetryStream to edukacyjna platforma cyfrowa popularyzująca poezję poprzez profesjonalne interpretacje aktorskie oraz interaktywne formy odbioru literatury.  
+Projekt wykorzystuje nowoczesne technologie, by ułatwić dostęp do literatury klasycznej poprzez materiały audio, interaktywne rozwiązania i dystrybucję cyfrową.
 
-Projekt łączy technologię Java + Spring Boot z frontem React, umożliwiając słuchanie wierszy, wyświetlanie zsynchronizowanego tekstu i poznawanie sylwetek autorów i aktorów.
+PoetryStream łączy **backend Java + Spring Boot** z **frontendem React**, umożliwiając słuchanie wierszy, wyświetlanie zsynchronizowanego tekstu i poznawanie sylwetek autorów i aktorów.  
 
 ---
 
 ## 📌 Project Overview
 
-PoetryStream is an educational audio streaming platform for poetry and literary works built with Java 21 and Spring Boot.
-PoetryStream explores how modern technology can make classical literature more accessible through audio, interactivity and digital distribution.
+PoetryStream is an educational audio streaming platform for poetry and literary works built with Java 21 and Spring Boot.  
+It explores how modern technology can make classical literature more accessible through audio, interactivity, and digital distribution.
 
-PoetryStream is a modular backend-driven platform designed to deliver high-quality audio recordings of poetry and literary works.\
-Architecture designed as a containerized modular monolith with secure public access via Cloudflare Tunnel.\
-Repository organized as a modular monolith with clear domain separation (controller → service → repository).
+Backend and frontend are integrated through **Nginx reverse proxy**, containerized and exposed securely via **Cloudflare Tunnel (HTTP/2)**.  
+Architecture: modular monolith, clear domain separation (controller → service → repository).
 
 ---
 
 ## 🚀 Tech Highlights
 
-- Full CI/CD pipeline (GitHub Actions → GHCR → self-hosted QNAP)
-- Containerized deployment (Docker Compose)
-- Secure public access via Cloudflare Tunnel (no open ports)
-- Modular monolith architecture (Spring Boot)
-- Production-ready PostgreSQL + Flyway migrations
-- React + TypeScript frontend with audio streaming
+- Full CI/CD pipeline: GitHub Actions → GHCR → self-hosted QNAP  
+- Containerized deployment (Docker Compose)  
+- Secure public access via **Cloudflare Tunnel (HTTP/2, no open ports)**  
+- Modular monolith architecture (Spring Boot 4.0.2)  
+- Production-ready **PostgreSQL + Flyway migrations**; H2 for development  
+- React + TypeScript frontend with audio streaming  
+- Automated **unit and integration tests** (JUnit, Mockito, Spring Boot Test)  
+- Layered architecture: controller → service → repository → DTO + MapStruct + global exception handling  
 
 ---
 
 ## 🖥 Infrastructure Details
 
-- Self-hosted on QNAP NAS
-- Dockerized services (PostgreSQL, Backend, Frontend, Cloudflare Tunnel)
-- Automated deployment via GitHub Actions + SSH
-- Zero exposed ports (Cloudflare Tunnel only)
+- Self-hosted on QNAP NAS  
+- Dockerized services: PostgreSQL, Backend, Frontend (served by Nginx), Cloudflare Tunnel  
+- Automated deployment via GitHub Actions + SSH  
+- **Zero exposed ports** (all public traffic via Cloudflare Tunnel)  
+- Cloudflare Tunnel uses alias `frontend` to reach Nginx container  
 
 ---
 
@@ -51,36 +53,39 @@ Status: **Production-ready MVP deployed on live infrastructure**
 
 ## ☁️ Deployment
 
-### Publiczna instancja testowa:  ![CI](https://github.com/widlakolak/poetry-stream/actions/workflows/deploy.yml/badge.svg)
-👉 https://poetrystream.qzz.io/
+### Publiczna instancja testowa
+![CI](https://github.com/widlakolak/poetry-stream/actions/workflows/deploy.yml/badge.svg)  
+Live MVP: 👉 **[https://poetrystream.qzz.io](https://poetrystream.qzz.io/)** – pełny frontend + backend w działaniu.
 
-PoetryStream działa na lekkiej infrastrukturze self-hosted.
+PoetryStream działa na lekkiej, self-hosted infrastrukturze.
 
 ### 🔍 Sprawdź wdrożenie
-
 ```bash
-https://poetrystream.qzz.io/actuator/health
 https://poetrystream.qzz.io/actuator/info
-```
+https://poetrystream.qzz.io/actuator/health
+https://poetrystream.qzz.io/swagger-ui/index.html
+````
+
+---
 
 ## 🏗 System Architecture
 
 ```mermaid
 flowchart TD
 
-User[Internet
-User]
+User[Internet User]
 CF[Cloudflare CDN
-DNS, TLS, security]
-Tunnel[Cloudflare
-Tunnel secure public access]
+DNS & TLS]
+Tunnel["Cloudflare Tunnel
+(HTTP/2)"]
 
 subgraph QNAP NAS - Docker Host
-  Nginx[Nginx
-Reverse Proxy]
-  Frontend[React Frontend]
+  Nginx[Nginx Reverse Proxy
+serves React frontend]
+  Frontend[React Frontend
+inside Nginx]
   Backend[Spring Boot API]
-  DB[(Database)]
+  DB[(PostgreSQL DB)]
 end
 
 User --> CF
@@ -91,19 +96,14 @@ Nginx --> Backend
 Backend --> DB
 ```
 
-Nginx działa również jako **reverse proxy**, dzięki czemu frontend komunikuje się z API przez:
-
-```bash
-/api/*
-```
-
-Takie podejście upraszcza konfigurację środowisk oraz zwiększa bezpieczeństwo (brak otwartych portów na serwerze).
+Nginx działa jako **reverse proxy**, dzięki czemu frontend komunikuje się z API przez `/api/*`, co zwiększa bezpieczeństwo (brak otwartych portów).
 
 ---
 
 ## ⚙️ CI/CD & DevOps
 
 ### Etap CI: Budowanie i Testy
+
 ```mermaid
 graph LR
     Code[Push Code] --> Build[Gradle Build]
@@ -112,185 +112,129 @@ graph LR
 ```
 
 ### Etap CD: Wdrożenie
+
 ```mermaid
 graph LR
     GHCR[New Image] --> Pull[QNAP: docker compose pull]
     Pull --> Up[docker compose up -d]
     Up --> Live[Live Instance]
 ```
-Security & Secrets: Wszystkie klucze dostępowe (SSH, API Tokens) są zarządzane przez zaszyfrowane mechanizmy GitHub Secrets.
+
+Security & Secrets: Wszystkie klucze dostępowe (SSH, API Tokens) są zarządzane przez **GitHub Secrets**.
 
 ---
 
 ## 🧱 Architektura MVP
 
 ### Backend
-- Java 21  
-- Spring Boot 4.0.2  
-- REST API (nagrania, autorzy, aktorzy)  
-- Spring Data JPA + Hibernate  
-- H2 (środowisko developerskie)  
-- Flyway (wersjonowanie migracji)  
-- Gradle (Groovy DSL)  
 
-Warstwowa architektura:
-controller → service → repository → domain + DTO + mapper
+* Java 21 + Spring Boot 4.0.2
+* REST API: Actor, Poet, Poem, Recording
+* Spring Data JPA + Hibernate
+* H2 (dev), PostgreSQL + Flyway (prod)
+* Gradle (Groovy DSL)
+* Layered architecture: controller → service → repository → domain + DTO + MapStruct + global exception handling
 
 ### Frontend
-- React 18 + TypeScript  
-- Vite  
-- Tailwind CSS  
-- Audio API / Howler.js  
+
+* React 18 + TypeScript
+* Vite + Tailwind CSS
+* Audio streaming (Howler.js)
 
 ### Infrastruktura
-- Docker
-- Nginx
-- Cloudflare Tunnel
-- QNAP NAS
+
+* Docker + Nginx + Cloudflare Tunnel (HTTP/2)
+* QNAP NAS
 
 ---
 
 ## 🔊 Funkcjonalności MVP
 
-- Lista nagrań (wiersze czytane przez aktorów)  
-- Profil autora i aktora  
-- Odtwarzacz audio  
-- Synchronizowany tekst  
-- Publiczny dostęp bez logowania  
+* Lista nagrań (wiersze czytane przez aktorów)
+* Profil autora i aktora
+* Odtwarzacz audio
+* Synchronizowany tekst (karaoke)
+* Publiczny dostęp bez logowania
 
 ---
 
 ## 📡 API & Dokumentacja
 
-Backend udostępnia REST API - pełny CRUD z MapStruct dla Actor, Poet, Poem i Recording.
-
-Planowane rozszerzenia:
-
-- Integracja z OpenAPI / Swagger UI  
-- Automatyczna dokumentacja endpointów  
-- Standaryzacja odpowiedzi (ResponseEntity + global handler)  
-- Wersjonowanie API (np. /api/v1)
-
-Docelowo API będzie gotowe do integracji z aplikacją mobilną oraz usługami zewnętrznymi.
+* REST API z CRUD dla Actor, Poet, Poem, Recording
+* MapStruct + DTO + warstwa serwisowa
+* Swagger UI: `/swagger-ui/index.html`
+* Planowane rozszerzenia: OpenAPI, standaryzacja odpowiedzi, wersjonowanie `/api/v1`
 
 ---
 
-## 🔐 Bezpieczeństwo (planowane)
+## 🔐 Bezpieczeństwo
 
-Wersja MVP działa bez uwierzytelniania (publiczny dostęp do treści).
+* Publiczny dostęp chroniony przez:
 
-Aplikacja publiczna jest chroniona przez:
+  * Cloudflare CDN
+  * Cloudflare Tunnel (HTTP/2)
+  * Nginx reverse proxy
+  * Docker container isolation
 
-- Cloudflare CDN
-- Cloudflare Tunnel (no open server ports)
-- Nginx reverse proxy
-- Container isolation (Docker)
-
-W kolejnych etapach planowane:
-
-- JWT Authentication  
-- Role użytkowników (ADMIN / EDUKATOR / USER)  
-- Ochrona endpointów administracyjnych  
-- Walidacja danych wejściowych  
-- Globalny handler wyjątków  
+* W przyszłości planowane: JWT, role, ochrona endpointów administracyjnych, walidacja danych wejściowych
 
 ---
 
 ## 🌍 Internacjonalizacja (i18n)
 
-Platforma projektowana jest z myślą o obsłudze wielu języków.
-
-Planowane rozwiązania:
-
-- Backend: Spring MessageSource  
-- Frontend: mechanizm i18n (React i18next)  
-- Możliwość dynamicznego przełączania języka  
-- Wsparcie dla środowisk polonijnych  
+* Backend: Spring MessageSource
+* Frontend: React i18next
+* Dynamiczna zmiana języka
+* Obsługa środowisk polonijnych
 
 ---
 
-## 🧩 Skalowalność i kierunek architektoniczny
+## 🧩 Skalowalność
 
-- Modularny monolit z podziałem domenowym  
-- Migracja z H2 do PostgreSQL w środowisku produkcyjnym  
-- Konteneryzacja (Docker)  
-- Możliwość integracji z zewnętrznym storage dla plików audio  
-- Przygotowanie pod przyszłe wydzielenie mikroserwisów
+* Modularny monolit z podziałem domenowym
+* Migracja z H2 do PostgreSQL w prod
+* Konteneryzacja (Docker)
+* Możliwość integracji z zewnętrznym storage dla plików audio
+* Przygotowanie pod mikroserwisy
 
 ---
 
 ### ▶ Uruchomienie lokalne
 
-### 🚀 Quick Start
-
-## Run with Docker
-
 ```bash
 git clone https://github.com/your-repo/poetrystream.git
 cd poetrystream
-
 docker compose up -d
 ```
 
-### Backend
-```bash
-cd backend
-./gradlew bootRun
-```
+* Backend: `./gradlew bootRun` (H2 dev)
 
-> Uwaga: profil `prod` oczekuje PostgreSQL. Poza Docker Compose ustaw host na lokalny serwer, np.
-> `DB_HOST=localhost DB_PORT=5432 DB_NAME=poetrystream DB_USERNAME=poetry DB_PASSWORD=poetrypassword`.
+* Frontend: `npm install && npm run dev
 
-- API dostępne na: http://localhost:8080  
-- H2 Console: http://localhost:8080/h2-console  
-(JDBC URL: jdbc:h2:file:./data/poetrydb, user: sa, pass: )  
+* Frontend: `[http://localhost:5173](http://localhost:5173)
 
----
+* API: [http://localhost:8080](http://localhost:8080)
 
-### Swagger UI:
-```bash
-http://localhost:8080/swagger-ui/index.html
-```
+* H2 Console: [http://localhost:8080/h2-console](http://localhost:8080/h2-console)
 
----
+* Swagger UI: [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
 
-### Health check:
-```bash
-http://localhost:8080/actuator/health
-```
-
----
-
-### Frontend
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-- Frontend: http://localhost:5173  
+* Health: [http://localhost:8080/actuator/health](http://localhost:8080/actuator/health)
 
 ---
 
 ### Available Endpoints (MVP)
-```bash
-recording
 
+```bash
 GET /api/recordings
 GET /api/recordings/{id}
 GET /api/recordings/{id}/karaoke
 
-poet
-
 GET /api/poets
 GET /api/poets/{id}
 
-poem
-
 GET /api/poems
 GET /api/poems/{id}
-
-actor
 
 GET /api/actors
 GET /api/actors/{id}
@@ -301,49 +245,46 @@ GET /api/actors/{id}
 ## 🚀 Plan rozwoju
 
 ### Etap 1 – Stabilizacja MVP
-- Ukończenie integracji frontend–backend  
-- Deployment środowiska testowego&emsp;&emsp;&emsp;👈
-- Walidacja danych, DTO, MapStruct  
-- CORS Config
-- Wyjątki - GlobalExceptionHandler, ResourceNotFoundException
-- Przygotowanie pod PostgreSQL  
 
----
+* Integracja frontend–backend
+* Deployment środowiska testowego
+* Walidacja danych, DTO, MapStruct
+* CORS config
+* Wyjątki: GlobalExceptionHandler, ResourceNotFoundException
+* Przygotowanie pod PostgreSQL
+* **Automatyczne testy jednostkowe i integracyjne (JUnit, Mockito, Spring Boot Test)**
 
 ### Etap 2 – Rozszerzenie edukacyjne
-- Rozbudowane profile autorów i aktorów  
-- Kategorie tematyczne i epoki literackie  
-- Quizy literackie dla szkół  
-- Panel administracyjny  
 
----
+* Rozbudowane profile autorów i aktorów
+* Kategorie tematyczne i epoki literackie
+* Quizy literackie dla szkół
+* Panel administracyjny
 
 ### Etap 3 – Komponent społecznościowy
-- Konta użytkowników  
-- System ocen i komentarzy  
-- Playlisty tematyczne  
-- Historia odsłuchań i postępy  
 
----
+* Konta użytkowników
+* System ocen i komentarzy
+* Playlisty tematyczne
+* Historia odsłuchań i postępy
 
 ### Etap 4 – Integracja instytucjonalna
-- Informacje o wydarzeniach literackich  
-- Współpraca z teatrami i bibliotekami  
-- Kalendarz wydarzeń  
 
----
+* Informacje o wydarzeniach literackich
+* Współpraca z teatrami i bibliotekami
+* Kalendarz wydarzeń
 
 ### Etap 5 – Transmisje na żywo
-- Streaming wydarzeń literackich  
-- Archiwizacja transmisji  
-- Interakcja użytkowników (chat)  
 
----
+* Streaming wydarzeń literackich
+* Archiwizacja transmisji
+* Interakcja użytkowników (chat)
 
 ### Etap 6 – Wersja mobilna
-- Aplikacja React Native  
-- Tryb offline  
-- Powiadomienia o wydarzeniach  
+
+* Aplikacja React Native
+* Tryb offline
+* Powiadomienia o wydarzeniach
 
 ---
 
@@ -351,11 +292,11 @@ GET /api/actors/{id}
 
 PoetryStream projektowany jest jako:
 
-- cyfrowa biblioteka poezji audio  
-- platforma edukacyjna dla szkół  
-- narzędzie promocji aktorów i twórców  
-- przestrzeń współpracy z instytucjami kultury  
-- platforma możliwa do wdrożenia również dla środowisk polonijnych  
+* Cyfrowa biblioteka poezji audio
+* Platforma edukacyjna dla szkół
+* Narzędzie promocji aktorów i twórców
+* Przestrzeń współpracy z instytucjami kultury
+* Możliwość wdrożenia w środowiskach polonijnych
 
 ---
 
@@ -364,64 +305,11 @@ PoetryStream projektowany jest jako:
 ```text
 poetry-stream/
 ├─ backend/                         # Spring Boot backend
-│  ├─ build.gradle                  # konfiguracja Gradle
-│  ├─ src/
-│  │  ├─ main/
-│  │  │  ├─ java/com/poetrystream/backend/
-│  │  │  │  ├─ BackendApplication.java
-│  │  │  │  ├─ controller/
-│  │  │  │  │  ├─ ActorController.java
-│  │  │  │  │  ├─ PoetController.java
-│  │  │  │  │  ├─ PoemController.java
-│  │  │  │  │  └─ RecordingController.java
-│  │  │  │  ├─ domain/
-│  │  │  │  │  ├─ Actor.java
-│  │  │  │  │  ├─ Poet.java
-│  │  │  │  │  ├─ Poem.java
-│  │  │  │  │  ├─ Recording.java
-│  │  │  │  │  └─ RecordingStatus.java
-│  │  │  │  ├─ dto/
-│  │  │  │  │  ├─ ActorDto.java
-│  │  │  │  │  ├─ PoetDto.java
-│  │  │  │  │  ├─ PoemDto.java
-│  │  │  │  │  ├─ RecordingDto.java
-│  │  │  │  │  └─ RecordingKaraokeDto.java
-│  │  │  │  ├─ exception/
-│  │  │  │  │  ├─ GlobalExceptionHandler.java
-│  │  │  │  │  └─ ResourceNotFoundException.java
-│  │  │  │  ├─ mapper/
-│  │  │  │  │  ├─ ActorMapper.java
-│  │  │  │  │  ├─ PoetMapper.java
-│  │  │  │  │  ├─ PoemMapper.java
-│  │  │  │  │  └─ RecordingMapper.java
-│  │  │  │  ├─ repository/
-│  │  │  │  │  ├─ ActorRepository.java
-│  │  │  │  │  ├─ PoetRepository.java
-│  │  │  │  │  ├─ PoemRepository.java
-│  │  │  │  │  └─ RecordingRepository.java
-│  │  │  │  └─ service/
-│  │  │  │     ├─ ActorService.java
-│  │  │  │     ├─ PoetService.java
-│  │  │  │     ├─ PoemService.java
-│  │  │  │     └─ RecordingService.java
-│  │  └─ resources/
-│  │     ├─ application.yaml        # konfiguracja (H2, Flyway)
-│  │     └─ db/migration/           # migracje Flyway
-│  └─ gradlew, gradlew.bat, settings.gradle
-│
 ├─ frontend/                        # React + TypeScript
-│  ├─ src/
-│  │  ├─ App.tsx
-│  │  ├─ index.tsx
-│  │  └─ components/
-│  │     └─ RecordingPlayer.tsx
-│  ├─ package.json
-│  ├─ tsconfig.json
-│  └─ vite.config.ts
-│
 ├─ .gitignore
 └─ README.md
 ```
+
 ```mermaid
 erDiagram
 
@@ -461,14 +349,14 @@ RECORDING {
 
 ## 📈 Potencjalne modele finansowania
 
-- Współpraca z bibliotekami i teatrami  
-- Patronaty instytucji kultury  
-- Subskrypcja premium (funkcje rozszerzone)  
-- Granty krajowe i europejskie  
+* Współpraca z bibliotekami i teatrami
+* Patronaty instytucji kultury
+* Subskrypcja premium (funkcje rozszerzone)
+* Granty krajowe i europejskie
 
 ---
 
 ## 📚 Status projektu
 
-Aktualna faza: MVP (Proof of Concept)  
+Aktualna faza: MVP (Proof of Concept)
 Cel: rozwój do pełnoprawnej platformy edukacyjno-kulturalnej.
