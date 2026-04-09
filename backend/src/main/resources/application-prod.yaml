@@ -39,12 +39,17 @@ management:
     web:
       exposure:
         include: health,info
+  endpoint:
+    health:
+      show-details: always
 
 springdoc:
+  packages-to-scan: com.poetrystream
   swagger-ui:
     path: /swagger-ui.html
     operations-sorter: alpha
   api-docs:
+    enabled: true
     path: /v3/api-docs
   show-actuator: true
 
