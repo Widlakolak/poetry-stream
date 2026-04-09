@@ -38,9 +38,7 @@ services:
     depends_on:
       - backend
     networks:
-      poetry-net:
-        aliases:
-          - frontend
+      - poetry-net
 
   cloudflare:
     image: cloudflare/cloudflared:latest
