@@ -19,4 +19,4 @@ COPY --from=builder /build/build/libs/*[!plain].jar app.jar
 
 EXPOSE 8080
 
-ENTRYPOINT ["java","-XX:MaxRAMPercentage=75","-jar","app.jar","--spring.profiles.active=prod"]
+ENTRYPOINT ["java","-XX:MaxRAMPercentage=75","-jar","poetry-stream.jar","--spring.profiles.active=prod"]

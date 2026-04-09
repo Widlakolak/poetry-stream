@@ -1,6 +1,7 @@
 # PoetryStream
 
 PoetryStream to edukacyjna platforma cyfrowa popularyzująca poezję poprzez profesjonalne interpretacje aktorskie oraz interaktywne formy odbioru literatury.
+PoetryStream wykorzystuje nowoczesne technologie, by ułatwić dostęp do literatury klasycznej poprzez materiały audio, interaktywne rozwiązania i dystrybucję cyfrową.
 
 Projekt łączy technologię Java + Spring Boot z frontem React, umożliwiając słuchanie wierszy, wyświetlanie zsynchronizowanego tekstu i poznawanie sylwetek autorów i aktorów.
 
@@ -9,10 +10,31 @@ Projekt łączy technologię Java + Spring Boot z frontem React, umożliwiając 
 ## 📌 Project Overview
 
 PoetryStream is an educational audio streaming platform for poetry and literary works built with Java 21 and Spring Boot.
+PoetryStream explores how modern technology can make classical literature more accessible through audio, interactivity and digital distribution.
 
 PoetryStream is a modular backend-driven platform designed to deliver high-quality audio recordings of poetry and literary works.\
 Architecture designed as a containerized modular monolith with secure public access via Cloudflare Tunnel.\
 Repository organized as a modular monolith with clear domain separation (controller → service → repository).
+
+---
+
+## 🚀 Tech Highlights
+
+- Full CI/CD pipeline (GitHub Actions → GHCR → self-hosted QNAP)
+- Containerized deployment (Docker Compose)
+- Secure public access via Cloudflare Tunnel (no open ports)
+- Modular monolith architecture (Spring Boot)
+- Production-ready PostgreSQL + Flyway migrations
+- React + TypeScript frontend with audio streaming
+
+---
+
+## 🖥 Infrastructure Details
+
+- Self-hosted on QNAP NAS
+- Dockerized services (PostgreSQL, Backend, Frontend, Cloudflare Tunnel)
+- Automated deployment via GitHub Actions + SSH
+- Zero exposed ports (Cloudflare Tunnel only)
 
 ---
 
@@ -23,16 +45,23 @@ Repository organized as a modular monolith with clear domain separation (control
 - Tworzenie nowoczesnego narzędzia edukacyjnego  
 - Integracja środowiska kultury i edukacji  
 
-Status projektu: **MVP / Proof of Concept**
+Status: **Production-ready MVP deployed on live infrastructure**
 
 ---
 
 ## ☁️ Deployment
 
-### Publiczna instancja testowa:  ![CI](https://github.com/piotrwiedlocha/poetry-stream/actions/workflows/ci.yml/badge.svg)
+### Publiczna instancja testowa:  ![CI](https://github.com/widlakolak/poetry-stream/actions/workflows/deploy.yml/badge.svg)
 👉 https://poetrystream.qzz.io/
 
 PoetryStream działa na lekkiej infrastrukturze self-hosted.
+
+### 🔍 Sprawdź wdrożenie
+
+```bash
+https://poetrystream.qzz.io/actuator/health
+https://poetrystream.qzz.io/actuator/info
+```
 
 ## 🏗 System Architecture
 
@@ -74,19 +103,20 @@ Takie podejście upraszcza konfigurację środowisk oraz zwiększa bezpieczeńst
 
 ## ⚙️ CI/CD & DevOps
 
+### Etap CI: Budowanie i Testy
 ```mermaid
 graph LR
-    subgraph Etap_CI [Etap CI: Budowanie i Testy]
-        Code[Push Code] --> Test[Gradle Build]
-        Test --> Docker[Docker Build]
-    end
+    Code[Push Code] --> Build[Gradle Build]
+    Build --> Docker[Docker Build]
+    Docker --> GHCR[Push to GHCR]
+```
 
-    subgraph Etap_CD [Etap CD: Wdrożenie]
-        GHCR[Push to GHCR] --> Deploy[Auto-deploy]
-        Deploy --> Live[Live Instance]
-    end
-
-    Docker ==> GHCR
+### Etap CD: Wdrożenie
+```mermaid
+graph LR
+    GHCR[New Image] --> Pull[QNAP: docker compose pull]
+    Pull --> Up[docker compose up -d]
+    Up --> Live[Live Instance]
 ```
 Security & Secrets: Wszystkie klucze dostępowe (SSH, API Tokens) są zarządzane przez zaszyfrowane mechanizmy GitHub Secrets.
 
@@ -219,7 +249,7 @@ cd backend
 
 ### Swagger UI:
 ```bash
-http://localhost:8080/swagger-ui.html
+http://localhost:8080/swagger-ui/index.html
 ```
 
 ---

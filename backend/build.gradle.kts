@@ -26,7 +26,7 @@ repositories {
 
 dependencies {
     implementation("org.postgresql:postgresql")
-    runtimeOnly("com.h2database:h2")
+    developmentOnly("com.h2database:h2")
 
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
@@ -61,4 +61,8 @@ tasks.withType<Test> { useJUnitPlatform() }
 
 tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
     archiveFileName.set("poetry-stream.jar")
+}
+
+springBoot {
+    buildInfo()
 }

@@ -33,7 +33,7 @@ services:
     networks:
       - poetry-net
 
-  frontend:
+  nginx:
     image: ghcr.io/widlakolak/poetry-stream/frontend:latest
     restart: unless-stopped
     depends_on:
@@ -48,7 +48,7 @@ services:
     environment:
         TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}
     depends_on:
-      - frontend
+      - nginx
     networks:
       - poetry-net
 
