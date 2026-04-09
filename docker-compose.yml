@@ -38,12 +38,14 @@ services:
     depends_on:
       - backend
     networks:
-      - poetry-net
+      poetry-net:
+        aliases:
+          - frontend
 
   cloudflare:
     image: cloudflare/cloudflared:latest
     restart: unless-stopped
-    command: tunnel --no-autoupdate run
+    command: tunnel --no-autoupdate run --protocol http2
     environment:
       TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}
     depends_on:
