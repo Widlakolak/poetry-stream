@@ -15,7 +15,7 @@ RUN ./gradlew bootJar -x test --no-daemon
 FROM eclipse-temurin:21-jre
 WORKDIR /app
 
-COPY --from=builder /build/build/libs/*[!plain].jar app.jar
+COPY --from=builder /build/build/libs/poetry-stream.jar poetry-stream.jar
 
 EXPOSE 8080
 

@@ -27,7 +27,6 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/poetrystream
       SPRING_DATASOURCE_USERNAME: poetry
       SPRING_DATASOURCE_PASSWORD: poetrypassword
-      SERVER_PORT: 8080
     ports:
       - "8081:8080"
     networks:
@@ -44,9 +43,9 @@ services:
   cloudflare:
     image: cloudflare/cloudflared:latest
     restart: unless-stopped
-    command: tunnel --no-autoupdate run --protocol http2
+    command: tunnel --no-autoupdate run
     environment:
-        TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}
     depends_on:
       - nginx
     networks:
