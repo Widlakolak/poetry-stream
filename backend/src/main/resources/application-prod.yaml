@@ -47,8 +47,7 @@ management:
 springdoc:
   packages-to-scan: com.poetrystream
   swagger-ui:
-    config-url: /v3/api-docs/swagger-config
-    disable-swagger-default-url: true
+    url: /v3/api-docs
   api-docs:
     enabled: true
     path: /v3/api-docs

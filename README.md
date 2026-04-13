@@ -14,6 +14,13 @@ It explores how modern technology can make classical literature more accessible 
 
 Backend and frontend are integrated through **Nginx reverse proxy**, containerized and exposed securely via **Cloudflare Tunnel (HTTP/2)**.  
 Architecture: modular monolith, clear domain separation (controller → service → repository).
+All traffic is routed via Cloudflare Tunnel → Nginx → internal Docker network.
+Nginx routes traffic internally:
+- `/` → frontend (React)
+- `/api/*` → backend REST API
+- `/v3/api-docs` → OpenAPI (Swagger)
+- `/actuator/*` → monitoring endpoints
+No ports exposed publicly — all traffic routed through Cloudflare Tunnel.
 
 ---
 
@@ -37,6 +44,8 @@ Architecture: modular monolith, clear domain separation (controller → service 
 - Automated deployment via GitHub Actions + SSH  
 - **Zero exposed ports** (all public traffic via Cloudflare Tunnel)  
 - Cloudflare Tunnel uses alias `frontend` to reach Nginx container  
+- Backend is proxy-aware (X-Forwarded headers) to correctly handle HTTPS behind Cloudflare Tunnel.
+- Debugged production issues involving Nginx routing, Cloudflare Tunnel, and OpenAPI integration
 
 ---
 
@@ -55,9 +64,10 @@ Status: **Production-ready MVP deployed on live infrastructure**
 
 ### Publiczna instancja testowa
 ![CI](https://github.com/widlakolak/poetry-stream/actions/workflows/deploy.yml/badge.svg)  
-Live MVP: 👉 **[https://poetrystream.qzz.io](https://poetrystream.qzz.io/)** – pełny frontend + backend w działaniu.
+Live MVP: 👉 **[https://poetrystream.qzz.io](https://poetrystream.qzz.io/)** - pełny frontend + backend w działaniu.
 
-PoetryStream działa na lekkiej, self-hosted infrastrukturze.
+PoetryStream runs on lightweight self-hosted infrastructure.
+All traffic is routed via Cloudflare Tunnel → Nginx → internal Docker network.
 
 ### 🔍 Sprawdź wdrożenie
 ```bash
@@ -121,6 +131,7 @@ graph LR
 ```
 
 Security & Secrets: Wszystkie klucze dostępowe (SSH, API Tokens) są zarządzane przez **GitHub Secrets**.
+Debugged routing w Nginx, usługe Cloudflare Tunnel oraz integracje z OpenAPI.
 
 ---
 
@@ -162,7 +173,7 @@ Security & Secrets: Wszystkie klucze dostępowe (SSH, API Tokens) są zarządzan
 
 * REST API z CRUD dla Actor, Poet, Poem, Recording
 * MapStruct + DTO + warstwa serwisowa
-* Swagger UI: `/swagger-ui/index.html`
+* Swagger UI (via reverse proxy, HTTPS-aware): https://poetrystream.qzz.io/swagger-ui/index.html
 * Planowane rozszerzenia: OpenAPI, standaryzacja odpowiedzi, wersjonowanie `/api/v1`
 
 ---
@@ -202,16 +213,16 @@ Security & Secrets: Wszystkie klucze dostępowe (SSH, API Tokens) są zarządzan
 ### ▶ Uruchomienie lokalne
 
 ```bash
-git clone https://github.com/your-repo/poetrystream.git
+git clone https://github.com/Widlakolak/poetry-stream.git
 cd poetrystream
 docker compose up -d
 ```
 
 * Backend: `./gradlew bootRun` (H2 dev)
 
-* Frontend: `npm install && npm run dev
+* Frontend: `npm install && npm run dev`
 
-* Frontend: `[http://localhost:5173](http://localhost:5173)
+* Frontend: [http://localhost:5173](http://localhost:5173)
 
 * API: [http://localhost:8080](http://localhost:8080)
 
