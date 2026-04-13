@@ -20,6 +20,7 @@ Nginx routes traffic internally:
 - `/api/*` → backend REST API
 - `/v3/api-docs` → OpenAPI (Swagger)
 - `/actuator/*` → monitoring endpoints
+
 No ports exposed publicly — all traffic routed through Cloudflare Tunnel.
 
 ---
@@ -66,15 +67,14 @@ Status: **Production-ready MVP deployed on live infrastructure**
 ![CI](https://github.com/widlakolak/poetry-stream/actions/workflows/deploy.yml/badge.svg)  
 Live MVP: 👉 **[https://poetrystream.qzz.io](https://poetrystream.qzz.io/)** - pełny frontend + backend w działaniu.
 
-PoetryStream runs on lightweight self-hosted infrastructure.
+PoetryStream runs on lightweight self-hosted infrastructure.\
 All traffic is routed via Cloudflare Tunnel → Nginx → internal Docker network.
 
 ### 🔍 Sprawdź wdrożenie
-```bash
-https://poetrystream.qzz.io/actuator/info
-https://poetrystream.qzz.io/actuator/health
-https://poetrystream.qzz.io/swagger-ui/index.html
-````
+
+[/actuator/info](https://poetrystream.qzz.io/actuator/info) \
+[/actuator/health](https://poetrystream.qzz.io/actuator/health) \
+[/swagger-ui/index.html](https://poetrystream.qzz.io/swagger-ui/index.html)
 
 ---
 
