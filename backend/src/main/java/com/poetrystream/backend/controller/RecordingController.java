@@ -17,7 +17,7 @@ import org.springframework.data.domain.Pageable;
 import java.net.URI;
 
 @RestController
-@RequestMapping("/api/recordings")
+@RequestMapping("/recordings")
 @RequiredArgsConstructor
 public class RecordingController {
 
