@@ -23,6 +23,9 @@ public class OpenApiConfig {
                         .version("1.0")
                         .description("Backend service for streaming poetry content"))
                 .servers(List.of(
+                        new Server()
+                                .url("/api")
+                                .description("Production API (via reverse proxy)"),
                         new Server().url("http://localhost:8080").description("Local Dev"),
                         new Server().url(frontendUrl).description("Frontend Reference")
                 ));
