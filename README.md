@@ -12,50 +12,53 @@ PoetryStream łączy **backend Java + Spring Boot** z **frontendem React**, umo�
 PoetryStream is an educational audio streaming platform for poetry and literary works built with Java 21 and Spring Boot.  
 It explores how modern technology can make classical literature more accessible through audio, interactivity, and digital distribution.
 
-Backend and frontend are integrated through **Nginx reverse proxy**, containerized and exposed securely via **Cloudflare Tunnel (HTTP/2)**.  
+Backend and frontend are integrated through a **layered Nginx reverse proxy setup**, containerized and exposed securely via **Cloudflare Tunnel (HTTP/2)**.  
 Architecture: modular monolith, clear domain separation (controller → service → repository).
-All traffic is routed via Cloudflare Tunnel → Nginx → internal Docker network.
-Nginx routes traffic internally:
-- `/` → frontend (React)
-- `/api/*` → backend REST API
-- `/v3/api-docs` → OpenAPI (Swagger)
-- `/actuator/*` → monitoring endpoints
 
-No ports exposed publicly — all traffic routed through Cloudflare Tunnel.
+All traffic is routed via Cloudflare Tunnel → Edge Nginx → internal Docker network.
+
+**Edge Nginx routing:**
+* `/` → frontend (React via internal Nginx)
+* `/api/*` → backend REST API (Spring Boot)
+* `/v3/api-docs` → OpenAPI (Swagger)
+* `/actuator/*` → monitoring endpoints
+
+No ports exposed publicly — all traffic is routed through Cloudflare Tunnel.
 
 ---
 
 ## 🚀 Tech Highlights
 
-- Full CI/CD pipeline: GitHub Actions → GHCR → self-hosted QNAP  
-- Containerized deployment (Docker Compose)  
-- Secure public access via **Cloudflare Tunnel (HTTP/2, no open ports)**  
-- Modular monolith architecture (Spring Boot 4.0.2)  
-- Production-ready **PostgreSQL + Flyway migrations**; H2 for development  
-- React + TypeScript frontend with audio streaming  
-- Automated **unit and integration tests** (JUnit, Mockito, Spring Boot Test)  
-- Layered architecture: controller → service → repository → DTO + MapStruct + global exception handling  
+* Full CI/CD pipeline: GitHub Actions → GHCR → self-hosted QNAP  
+* Containerized deployment (Docker Compose)  
+* Secure public access via **Cloudflare Tunnel (HTTP/2, no open ports)**  
+* Modular monolith architecture (Spring Boot 4.0.2)  
+* Production-ready **PostgreSQL + Flyway migrations**; H2 for development  
+* React + TypeScript frontend with audio streaming  
+* Automated **unit and integration tests** (JUnit, Mockito, Spring Boot Test)  
+* Layered architecture: controller → service → repository → DTO + MapStruct + global exception handling  
 
 ---
 
 ## 🖥 Infrastructure Details
 
-- Self-hosted on QNAP NAS  
-- Dockerized services: PostgreSQL, Backend, Frontend (served by Nginx), Cloudflare Tunnel  
-- Automated deployment via GitHub Actions + SSH  
-- **Zero exposed ports** (all public traffic via Cloudflare Tunnel)  
-- Cloudflare Tunnel uses alias `frontend` to reach Nginx container  
-- Backend is proxy-aware (X-Forwarded headers) to correctly handle HTTPS behind Cloudflare Tunnel.
-- Debugged production issues involving Nginx routing, Cloudflare Tunnel, and OpenAPI integration
+* Self-hosted on QNAP NAS  
+* Dockerized services: PostgreSQL, Backend, Frontend (served by Nginx), Cloudflare Tunnel  
+* Automated deployment via GitHub Actions + SSH  
+* **Zero exposed ports** (all public traffic via Cloudflare Tunnel)  
+* Multi-layer reverse proxy architecture (Edge Nginx + Frontend Nginx) with path-based routing and SPA fallback handling  
+* Cloudflare Tunnel uses alias `frontend` to reach Nginx container  
+* Backend is proxy-aware (X-Forwarded headers) to correctly handle HTTPS behind Cloudflare Tunnel.  
+* Debugged production issues involving Nginx routing, Cloudflare Tunnel, and OpenAPI integration  
 
 ---
 
 ## 🎯 Misja
 
-- Popularyzacja poezji i literatury w środowisku cyfrowym  
-- Wsparcie twórców i aktorów  
-- Tworzenie nowoczesnego narzędzia edukacyjnego  
-- Integracja środowiska kultury i edukacji  
+* Popularyzacja poezji i literatury w środowisku cyfrowym  
+* Wsparcie twórców i aktorów  
+* Tworzenie nowoczesnego narzędzia edukacyjnego  
+* Integracja środowiska kultury i edukacji  
 
 Status: **Production-ready MVP deployed on live infrastructure**
 
@@ -90,23 +93,30 @@ Tunnel["Cloudflare Tunnel
 (HTTP/2)"]
 
 subgraph QNAP NAS - Docker Host
-  Nginx[Nginx Reverse Proxy
-serves React frontend]
-  Frontend[React Frontend
-inside Nginx]
+  EdgeNginx["Nginx Reverse Proxy
+(entrypoint)"]
+  FrontendNginx[Nginx serving React SPA]
+  Frontend[React Frontend]
   Backend[Spring Boot API]
   DB[(PostgreSQL DB)]
 end
 
 User --> CF
 CF --> Tunnel
-Tunnel --> Nginx
-Nginx --> Frontend
-Nginx --> Backend
+Tunnel --> EdgeNginx
+EdgeNginx --> FrontendNginx
+EdgeNginx --> Backend
+FrontendNginx --> Frontend
 Backend --> DB
 ```
 
-Nginx działa jako **reverse proxy**, dzięki czemu frontend komunikuje się z API przez `/api/*`, co zwiększa bezpieczeństwo (brak otwartych portów).
+System wykorzystuje architekturę **layered reverse proxy**:  
+
+- Edge Nginx obsługuje ruch publiczny i routing  
+- Frontend Nginx obsługuje React SPA z routingiem awaryjnym (fallback routing)  
+- Backend jest udostępniany wyłącznie wewnętrznie poprzez `/api/*  
+
+Wyraźny podział odpowiedzialności oraz brak bezpośredniej publicznej ekspozycji usług backendowych.   
 
 ---
 
